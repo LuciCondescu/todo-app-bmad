@@ -1,6 +1,6 @@
 # Story 1.1: Monorepo scaffold with Docker Postgres
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -74,6 +74,19 @@ so that I can install and run the stack with a single command from a fresh clone
   - [x] `docker compose up -d postgres` → container reaches `healthy` state within 30 s (check via `docker ps` or `docker inspect --format='{{.State.Health.Status}}' <id>`)
   - [x] `docker compose down` cleans up the container; `pg-data` volume persists (visible via `docker volume ls`)
   - [x] `git status` shows no accidentally-committed `.env`, `node_modules/`, or `dist/`
+
+### Review Findings
+
+_Generated 2026-04-18 by bmad-code-review — 3 layers: Blind Hunter, Edge Case Hunter, Acceptance Auditor. 0 decision-needed, 0 patch, 8 deferred, 19 dismissed._
+
+- [x] [Review][Defer] No Node version pinning (`.nvmrc` / `engines` field in `package.json`) — deferred, out of scope for 1.1
+- [x] [Review][Defer] No `.npmrc` (lockfile discipline, registry pin, `engine-strict`) — deferred, out of scope for 1.1
+- [x] [Review][Defer] `.gitignore` will miss common future offenders (`coverage/`, `.turbo/`, `*.tsbuildinfo`) — deferred, add organically as later stories introduce them
+- [x] [Review][Defer] No `LICENSE` file / `license` field — deferred, not part of story 1.1 scope
+- [x] [Review][Defer] No documented `db:reset` workflow — deferred, natural home is Story 1.3 (migrations) or 1.6 (onboarding)
+- [x] [Review][Defer] Existing `pg-data` named volume from a prior Postgres major version could collide — deferred, universal local-Postgres concern, not 1.1-introduced
+- [x] [Review][Defer] No `.gitattributes` enforcing LF line endings at the git layer — deferred, single-user training project; revisit if cross-platform contributors join
+- [x] [Review][Defer] `docker-compose.yml` adds `container_name: todo-app-postgres` and `restart: unless-stopped` beyond spec's sketch — deferred, not forbidden, harmless ergonomic extras
 
 ## Dev Notes
 
