@@ -5,12 +5,18 @@ classification:
   domain: 'general'
   projectType: 'web_app'
   complexity: 'low'
-inputDocuments: []
-stepsCompleted: ['step-e-01-discovery', 'step-e-02-review', 'step-e-03-edit']
+inputDocuments:
+  - '_bmad-output/planning-artifacts/product-brief.md'
+stepsCompleted: ['step-e-01-discovery', 'step-e-02-review', 'step-e-03-edit', 'step-e-04-polish']
 lastEdited: '2026-04-18'
+version: '1.1'
 editHistory:
   - date: '2026-04-18'
+    version: '1.0'
     changes: 'Full restructure from legacy prose into BMAD format per validation report findings. Added frontmatter and nine Level-2 sections. Enumerated FRs (FR-001..FR-012) with acceptance criteria and source traces. Quantified NFRs (NFR-001..NFR-007) with measurement methods. Authored three User Journeys. Added UX/UI Requirements and Responsive Design & Browser Support sections required for web_app. Removed density violations and reframed architecture-tier vocabulary.'
+  - date: '2026-04-18'
+    version: '1.1'
+    changes: 'Applied three optional-polish improvements from the v1.0 validation report. (1) Reframed FR-006..FR-012 into strict [Actor] can [capability] form while preserving acceptance criteria and measurement posture. (2) Added journey traces to FR-005 (data model) and FR-012 (API contract) in addition to their Product Scope anchors. (3) Authored Journey 4 (Performance Under Sustained Use) to anchor SC-003 and NFR-001/NFR-002 to an explicit user narrative; updated NFR-001 and NFR-002 Source columns accordingly. Linked product-brief.md as input document.'
 ---
 
 # Product Requirements Document — Todo App
@@ -103,6 +109,19 @@ Deferred to Growth or Vision phases:
 
 **Completion criteria:** No data loss. User can recover without refreshing the page.
 
+### Journey 4 — Performance Under Sustained Use
+
+**Trigger:** A returning user works with a populated list (≥50 todos) across a session of repeated create, complete, and delete actions.
+**Exercises:** SC-003; NFR-001, NFR-002; FR-002, FR-003.
+
+1. User opens the app. List of 50+ todos fetches and renders; perceived render completion tracks API p95 ≤200ms.
+2. User rapidly toggles completion checkboxes on multiple todos in succession. Each checkbox state transition — strike-through, opacity change, section reordering — resolves within UI p95 ≤100ms.
+3. User adds several new todos in quick succession. Each `POST` round-trip and subsequent list reconciliation stays within the p95 envelope.
+4. User deletes a handful of todos (each gated by the confirmation modal). Modal open, confirm, and row removal each resolve within UI p95 ≤100ms.
+5. Session continues without cumulative degradation — the 40th interaction feels identical to the 1st.
+
+**Completion criteria:** No interaction in the session exceeds the p95 targets under single-user load. No perceptible lag on create, complete, or delete. Measured results match SC-003 and satisfy NFR-001 and NFR-002.
+
 ## Functional Requirements
 
 | ID | Requirement | Acceptance Criteria | Source |
@@ -111,21 +130,21 @@ Deferred to Growth or Vision phases:
 | FR-002 | Users can view the full todo list on load, with active items first (creation ASC) and completed items last (creation ASC). | List renders on successful list fetch; ordering verified by automated test. | Journeys 1, 2; SC-001 |
 | FR-003 | Users can mark a todo complete by clicking its checkbox. | Todo immediately renders with strike-through + 60% opacity; completion persists across reload; todo relocates to the completed section. | Journey 2; SC-002 |
 | FR-004 | Users can delete a todo via a row-level delete icon, gated by a modal confirmation. | Modal copy: "Delete this todo? This cannot be undone." Cancel dismisses the modal with no change. Delete removes the todo and persists. Hard delete — no soft-delete semantics in MVP. | Journey 2; SC-002 |
-| FR-005 | Each todo record contains: `id` (string/uuid), `description` (string ≤500 chars), `completed` (boolean), `createdAt` (ISO 8601 timestamp), `userId` (nullable string, reserved for Growth). | Schema covered by automated contract tests. No additional fields in MVP. | Product Scope |
-| FR-006 | Completed todos are visually distinct: strike-through text, 60% opacity, and checked checkbox icon. Text maintains WCAG 2.1 AA contrast (≥4.5:1) against background at 60% opacity. | Contrast verified via automated a11y check (axe-core or equivalent). | Journey 2; SC-004; NFR-007 |
-| FR-007 | Empty state renders when the todo list is empty: illustration, copy "No todos yet. Add one below.", and a visible text input. | Component renders on first load when list is empty and after all todos are deleted. | Journey 1 |
-| FR-008 | Loading state renders while the initial todo fetch is in flight: skeleton placeholder or spinner visible within 16ms of mount. | Observed in DevTools. No flash of empty state while fetch is pending. | Journey 2 |
-| FR-009 | Interface renders correctly across the declared browser/device matrix (see Responsive Design & Browser Support). | Visual smoke test on all target browsers at declared viewports. Zero horizontal scroll at 320px. | Journey 2; SC-004 |
-| FR-010 | Error state renders inline at the point of failure for any failed CRUD action, with a Retry button and no loss of in-progress input. | Simulated network failure during create/complete/delete shows error UI. Retry re-fires the original request. Input preserved on create failure. | Journey 3; SC-002 |
-| FR-011 | Todos persist across page refresh, browser close, and server restart. | Automated integration test: create todo → stop/start server → fetch → todo present with identical id and fields. | Journey 2; SC-002 |
-| FR-012 | The data-access interface supports CRUD via `POST /todos`, `GET /todos`, `PATCH /todos/:id`, `DELETE /todos/:id` with JSON request/response bodies matching the FR-005 schema. | Contract test asserts endpoint shapes and status codes (201, 200, 200, 204). | Product Scope |
+| FR-005 | Users' todos are stored under a stable record shape — `id` (string/uuid), `description` (string ≤500 chars), `completed` (boolean), `createdAt` (ISO 8601 timestamp), `userId` (nullable string, reserved for Growth) — with no additional fields in MVP. | Schema covered by automated contract tests. No additional fields in MVP. | Journey 2; Product Scope |
+| FR-006 | Users see completed todos rendered with strike-through text, 60% opacity, and a checked checkbox icon, with text maintaining WCAG 2.1 AA contrast (≥4.5:1) against background at 60% opacity. | Contrast verified via automated a11y check (axe-core or equivalent). | Journey 2; SC-004; NFR-007 |
+| FR-007 | Users see an empty state when the todo list is empty — illustration, copy "No todos yet. Add one below.", and a visible text input. | Component renders on first load when list is empty and after all todos are deleted. | Journey 1 |
+| FR-008 | Users see a loading state during the initial todo fetch — skeleton placeholder or spinner visible within 16ms of mount. | Observed in DevTools. No flash of empty state while fetch is pending. | Journey 2 |
+| FR-009 | Users can access the app across the declared browser/device matrix (see Responsive Design & Browser Support) with correct rendering at every supported viewport. | Visual smoke test on all target browsers at declared viewports. Zero horizontal scroll at 320px. | Journey 2; SC-004 |
+| FR-010 | Users see an inline error at the point of failure for any failed CRUD action, with a Retry button and no loss of in-progress input. | Simulated network failure during create/complete/delete shows error UI. Retry re-fires the original request. Input preserved on create failure. | Journey 3; SC-002 |
+| FR-011 | Users' todos persist across page refresh, browser close, and server restart. | Automated integration test: create todo → stop/start server → fetch → todo present with identical id and fields. | Journey 2; SC-002 |
+| FR-012 | Users can perform CRUD on todos via `POST /todos`, `GET /todos`, `PATCH /todos/:id`, `DELETE /todos/:id` with JSON request/response bodies matching the FR-005 schema. | Contract test asserts endpoint shapes and status codes (201, 200, 200, 204). | Journeys 1, 2, 3; Product Scope |
 
 ## Non-Functional Requirements
 
 | ID | Requirement | Measurement Method | Source |
 |---|---|---|---|
-| NFR-001 | UI interaction response time p95 ≤100ms under single-user load. | Chrome DevTools Performance panel on evergreen browser + mid-tier 2022 laptop; measured across create, complete, and delete actions. | SC-003 |
-| NFR-002 | API response time p95 ≤200ms for all four endpoints (FR-012) under single-user load. | APM or request-log aggregation over ≥100 requests per endpoint. | SC-003 |
+| NFR-001 | UI interaction response time p95 ≤100ms under single-user load. | Chrome DevTools Performance panel on evergreen browser + mid-tier 2022 laptop; measured across create, complete, and delete actions. | SC-003; Journey 4 |
+| NFR-002 | API response time p95 ≤200ms for all four endpoints (FR-012) under single-user load. | APM or request-log aggregation over ≥100 requests per endpoint. | SC-003; Journey 4 |
 | NFR-003 | Data durability: zero todo loss across page refresh, browser close, and server restart. | Automated integration test (FR-011). | SC-002 |
 | NFR-004 | On network or server error during any CRUD action, the app renders an inline error (FR-010) and preserves user input. | Fault-injection test (offline mode; simulated 5xx response); assert UI state and preserved input. | Journey 3 |
 | NFR-005 | The data model carries a nullable `userId` field from MVP to enable the Growth-phase authentication addition without a schema migration. | Schema review; verified by FR-005 contract test. | Product Scope |
