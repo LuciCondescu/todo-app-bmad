@@ -68,12 +68,15 @@ describe('buildApp', () => {
     }
   });
 
-  it('registers the /healthz route', async () => {
+  it('registers the /healthz and /docs routes, and leaves /v1/todos unregistered', async () => {
     app = await buildApp({
       config: { DATABASE_URL: 'postgresql://test' },
       db: createDummyDb(),
     });
     expect(app.hasRoute({ method: 'GET', url: '/healthz' })).toBe(true);
+    expect(app.hasRoute({ method: 'GET', url: '/docs' })).toBe(true);
+    expect(app.hasRoute({ method: 'POST', url: '/v1/todos' })).toBe(false);
+    expect(app.hasRoute({ method: 'GET', url: '/v1/todos' })).toBe(false);
   });
 
   it('responds to GET /healthz with 200 { status: "ok", db: "ok" } when the DB probe succeeds', async () => {
@@ -106,5 +109,38 @@ describe('buildApp', () => {
 
   it('fails fast when DATABASE_URL is missing', async () => {
     await expect(buildApp({ config: {}, db: createDummyDb() })).rejects.toThrow(/DATABASE_URL/i);
+  });
+
+  it('fails fast when CORS_ORIGIN is not a valid URI (ajv-formats enforces format: uri)', async () => {
+    await expect(
+      buildApp({
+        config: { DATABASE_URL: 'postgresql://ok', CORS_ORIGIN: 'not a uri' },
+        db: createDummyDb(),
+      }),
+    ).rejects.toThrow(/format|uri/i);
+  });
+
+  it('returns a 404 envelope for POST /v1/todos (no handlers registered yet)', async () => {
+    app = await buildApp({
+      config: { DATABASE_URL: 'postgresql://test' },
+      db: createDummyDb(),
+    });
+
+    const res = await app.inject({ method: 'POST', url: '/v1/todos' });
+
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toMatchObject({ statusCode: 404, error: 'Not Found' });
+  });
+
+  it('returns a 404 envelope for an unknown root path', async () => {
+    app = await buildApp({
+      config: { DATABASE_URL: 'postgresql://test' },
+      db: createDummyDb(),
+    });
+
+    const res = await app.inject({ method: 'GET', url: '/unknown' });
+
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toMatchObject({ statusCode: 404, error: 'Not Found' });
   });
 });

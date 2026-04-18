@@ -4,9 +4,14 @@ export const envSchema = {
   type: 'object',
   required: ['DATABASE_URL'],
   properties: {
-    DATABASE_URL: { type: 'string', minLength: 1 },
+    DATABASE_URL: { type: 'string', format: 'uri', minLength: 1 },
     PORT: { type: 'number', minimum: 1, maximum: 65535, default: 3000 },
-    CORS_ORIGIN: { type: 'string', default: 'http://localhost:5173' },
+    CORS_ORIGIN: {
+      type: 'string',
+      format: 'uri',
+      default: 'http://localhost:5173',
+      minLength: 1,
+    },
     LOG_LEVEL: {
       type: 'string',
       enum: ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'],
