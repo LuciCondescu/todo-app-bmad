@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Todo App — Design Direction A (Canvas)</title>
+    <style>
+      :root {
+        --color-bg: #fafafa;
+        --color-surface: #ffffff;
+        --color-fg: #1a1a1a;
+        --color-fg-muted: #737373;
+        --color-border: #e5e5e5;
+        --color-accent: #2563eb;
+        --color-danger: #dc2626;
+        --radius-md: 6px;
+        --radius-lg: 10px;
+        --focus-ring: 0 0 0 2px #fafafa, 0 0 0 4px var(--color-accent);
+      }
+
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #f3f4f6;
+        color: var(--color-fg);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Page layout (this file is the showcase, not the app) */
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 32px 24px 96px;
+      }
+      .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin: 0 0 8px;
+      }
+      .page-sub {
+        color: var(--color-fg-muted);
+        font-size: 14px;
+        margin: 0 0 32px;
+      }
+      .section-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--color-fg-muted);
+        margin: 32px 0 12px;
+        font-weight: 600;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      @media (min-width: 1024px) {
+        .grid-desktop {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      /* Device frames */
+      .frame {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+      .frame-caption {
+        font-size: 13px;
+        color: var(--color-fg-muted);
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--color-border);
+        background: #ffffff;
+        display: flex;
+        justify-content: space-between;
+      }
+      .frame-caption strong { color: var(--color-fg); font-weight: 600; }
+
+      .device-mobile {
+        width: 320px;
+        margin: 0 auto;
+      }
+      .device-mobile .viewport { min-height: 568px; }
+      .device-desktop .viewport { min-height: 560px; }
+
+      /* ---------- APP VISUALS (Direction A — Canvas) ---------- */
+      .viewport {
+        background: var(--color-bg);
+        padding: 32px 16px 48px;
+        position: relative;
+      }
+      @media (min-width: 641px) {
+        .viewport { padding: 64px 24px 80px; }
+      }
+
+      .app {
+        max-width: 640px;
+        margin: 0 auto;
+      }
+
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+      .app-title {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+
+      /* Add Input */
+      .add-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+      .add-input {
+        flex: 1;
+        height: 44px;
+        padding: 0 14px;
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--color-fg);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        outline: none;
+        transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+      }
+      .add-input::placeholder { color: var(--color-fg-muted); }
+      .add-input:focus {
+        border-color: var(--color-accent);
+        box-shadow: var(--focus-ring);
+      }
+
+      .btn {
+        height: 44px;
+        min-width: 64px;
+        padding: 0 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid transparent;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 150ms ease-out, border-color 150ms ease-out,
+          color 150ms ease-out, box-shadow 150ms ease-out;
+      }
+      .btn:focus-visible { box-shadow: var(--focus-ring); outline: none; }
+      .btn-primary {
+        background: var(--color-accent);
+        color: #ffffff;
+      }
+      .btn-primary:hover { background: #1d4ed8; }
+      .btn-secondary {
+        background: var(--color-surface);
+        color: var(--color-fg);
+        border-color: var(--color-border);
+      }
+      .btn-secondary:hover { background: #f5f5f5; }
+      .btn-danger {
+        background: var(--color-danger);
+        color: #ffffff;
+      }
+      .btn-danger:hover { background: #b91c1c; }
+
+      /* Todo list */
+      .section-heading {
+        font-size: 14px;
+        color: var(--color-fg-muted);
+        margin: 24px 0 8px;
+        font-weight: 500;
+      }
+      .todo-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .todo-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 8px;
+        border-bottom: 1px solid var(--color-border);
+        transition: opacity 200ms ease-out;
+      }
+      @media (min-width: 641px) { .todo-row { padding: 16px 8px; } }
+
+      .todo-check {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        accent-color: var(--color-accent);
+        cursor: pointer;
+      }
+      /* 44x44 tappable wrapper around checkbox */
+      .check-wrap {
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .todo-text {
+        flex: 1;
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--color-fg);
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .todo-row.completed .todo-text {
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+
+      .icon-btn {
+        width: 44px;
+        height: 44px;
+        background: transparent;
+        border: 0;
+        border-radius: var(--radius-md);
+        color: var(--color-fg-muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: color 150ms ease-out, background 150ms ease-out;
+      }
+      .icon-btn:hover { color: var(--color-danger); background: #fef2f2; }
+      .icon-btn:focus-visible { box-shadow: var(--focus-ring); outline: none; }
+
+      /* Empty state */
+      .empty {
+        text-align: center;
+        padding: 48px 16px;
+      }
+      .empty-illus {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 16px;
+        color: var(--color-fg-muted);
+        opacity: 0.7;
+      }
+      .empty-copy {
+        font-size: 16px;
+        color: var(--color-fg);
+        margin: 0 0 4px;
+      }
+      .empty-sub {
+        font-size: 14px;
+        color: var(--color-fg-muted);
+        margin: 0;
+      }
+
+      /* Inline error */
+      .inline-error {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        margin-top: 8px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        color: #991b1b;
+      }
+      .inline-error-text { display: flex; align-items: center; gap: 8px; }
+
+      /* Modal */
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .modal {
+        background: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08),
+          0 4px 6px rgba(0, 0, 0, 0.04);
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 8px;
+      }
+      .modal-body {
+        font-size: 14px;
+        color: var(--color-fg-muted);
+        margin: 0 0 20px;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      /* Notes */
+      .annot {
+        font-size: 12px;
+        color: var(--color-fg-muted);
+        margin-top: 10px;
+      }
+      .legend {
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+      }
+      .legend h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+      .legend ul { margin: 0; padding-left: 18px; color: var(--color-fg-muted); font-size: 13px; }
+      .legend li { margin-bottom: 2px; }
+
+      /* Swatches */
+      .swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .swatch {
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--color-fg-muted);
+      }
+      .chip {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1 class="page-title">Todo App — Design Direction A: "Canvas"</h1>
+      <p class="page-sub">
+        Clinical minimalism. Cool neutrals, blue accent used only for interactive
+        affordances. System fonts. One-column layout. Monochrome foreground,
+        single accent, single danger color. Mockups below render the same tokens
+        specified in the UX design specification.
+      </p>
+
+      <div class="legend">
+        <h3>Legend</h3>
+        <ul>
+          <li>Mobile frames are 320px wide (minimum supported viewport).</li>
+          <li>Desktop frames render at the ~640px app container width.</li>
+          <li>Every interactive element is ≥ 44×44px (tap-target minimum).</li>
+          <li>Completed text is <code>#1A1A1A</code> at 60% opacity → ~6.8:1 contrast against <code>#FAFAFA</code> (WCAG AA).</li>
+        </ul>
+      </div>
+
+      <div class="swatches">
+        <div class="swatch"><span class="chip" style="background:#FAFAFA"></span> bg — #FAFAFA</div>
+        <div class="swatch"><span class="chip" style="background:#FFFFFF"></span> surface — #FFFFFF</div>
+        <div class="swatch"><span class="chip" style="background:#1A1A1A"></span> fg — #1A1A1A</div>
+        <div class="swatch"><span class="chip" style="background:#737373"></span> fg-muted — #737373</div>
+        <div class="swatch"><span class="chip" style="background:#E5E5E5"></span> border — #E5E5E5</div>
+        <div class="swatch"><span class="chip" style="background:#2563EB"></span> accent — #2563EB</div>
+        <div class="swatch"><span class="chip" style="background:#DC2626"></span> danger — #DC2626</div>
+      </div>
+
+      <!-- ========== EMPTY STATE ========== -->
+      <div class="section-label">01 · Empty state (first-time user)</div>
+      <div class="grid grid-desktop">
+        <div class="frame device-desktop">
+          <div class="frame-caption"><strong>Desktop</strong><span>640px container</span></div>
+          <div class="viewport">
+            <div class="app">
+              <header class="app-header">
+                <h2 class="app-title">Todos</h2>
+              </header>
+              <div class="add-row">
+                <input
+                  class="add-input"
+                  type="text"
+                  maxlength="500"
+                  placeholder="What needs doing?"
+                  autofocus
+                />
+                <button class="btn btn-primary">Add</button>
+              </div>
+              <div class="empty">
+                <svg class="empty-illus" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="12" y="10" width="40" height="44" rx="4" />
+                  <line x1="20" y1="22" x2="44" y2="22" />
+                  <line x1="20" y1="30" x2="40" y2="30" />
+                  <line x1="20" y1="38" x2="36" y2="38" />
+                </svg>
+                <p class="empty-copy">No todos yet.</p>
+                <p class="empty-sub">Add one below.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="frame device-mobile">
+          <div class="frame-caption"><strong>Mobile</strong><span>320px</span></div>
+          <div class="viewport">
+            <div class="app">
+              <header class="app-header">
+                <h2 class="app-title">Todos</h2>
+              </header>
+              <div class="add-row">
+                <input
+                  class="add-input"
+                  type="text"
+                  maxlength="500"
+                  placeholder="What needs doing?"
+                />
+                <button class="btn btn-primary">Add</button>
+              </div>
+              <div class="empty">
+                <svg class="empty-illus" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="12" y="10" width="40" height="44" rx="4" />
+                  <line x1="20" y1="22" x2="44" y2="22" />
+                  <line x1="20" y1="30" x2="40" y2="30" />
+                  <line x1="20" y1="38" x2="36" y2="38" />
+                </svg>
+                <p class="empty-copy">No todos yet.</p>
+                <p class="empty-sub">Add one below.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="annot">
+        Notes: input is auto-focused on mount. Empty-state copy is a single
+        thought split across two lines. Focus ring visible on desktop input
+        (WCAG). No marketing, no tour, no login.
+      </p>
+
+      <!-- ========== POPULATED LIST ========== -->
+      <div class="section-label">02 · Populated list (with one completed todo)</div>
+      <div class="grid grid-desktop">
+        <div class="frame device-desktop">
+          <div class="frame-caption"><strong>Desktop</strong><span>Active + Completed sections</span></div>
+          <div class="viewport">
+            <div class="app">
+              <header class="app-header">
+                <h2 class="app-title">Todos</h2>
+              </header>
+              <div class="add-row">
+                <input
+                  class="add-input"
+                  type="text"
+                  maxlength="500"
+                  placeholder="What needs doing?"
+                />
+                <button class="btn btn-primary">Add</button>
+              </div>
+
+              <ul class="todo-list">
+                <li class="todo-row">
+                  <span class="check-wrap">
+                    <input class="todo-check" type="checkbox" aria-label="Mark complete: Write the UX design spec" />
+                  </span>
+                  <span class="todo-text">Write the UX design spec</span>
+                  <button class="icon-btn" aria-label="Delete todo: Write the UX design spec">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" /><path d="M14 11v6" />
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                  </button>
+                </li>
+                <li class="todo-row">
+                  <span class="check-wrap">
+                    <input class="todo-check" type="checkbox" aria-label="Mark complete: Review PRD with architecture notes" />
+                  </span>
+                  <span class="todo-text">Review PRD with architecture notes</span>
+                  <button class="icon-btn" aria-label="Delete todo: Review PRD with architecture notes">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" /><path d="M14 11v6" />
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                  </button>
+                </li>
+                <li class="todo-row">
+                  <span class="check-wrap">
+                    <input class="todo-check" type="checkbox" aria-label="Mark complete: Test the modal on mobile" />
+                  </span>
+                  <span class="todo-text">Test the modal on mobile</span>
+                  <button class="icon-btn" aria-label="Delete todo: Test the modal on mobile">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" /><path d="M14 11v6" />
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                  </button>
+                </li>
+              </ul>
+
+              <p class="section-heading">Completed</p>
+              <ul class="todo-list">
+                <li class="todo-row completed">
+                  <span class="check-wrap">
+                    <input class="todo-check" type="checkbox" checked aria-label="Uncheck: Scaffold the monorepo" />
+                  </span>
+                  <span class="todo-text">Scaffold the monorepo</span>
+                  <button class="icon-btn" aria-label="Delete todo: Scaffold the monorepo">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" /><path d="M14 11v6" />
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="frame device-mobile">
+          <div class="frame-caption"><strong>Mobile</strong><span>320px</span></div>
+          <div class="viewport">
+            <div class="app">
+              <header class="app-header">
+                <h2 class="app-title">Todos</h2>
+              </header>
+              <div class="add-row">
+                <input class="add-input" type="text" maxlength="500" placeholder="What needs doing?" />
+                <button class="btn btn-primary">Add</button>
+              </div>
+
+              <ul class="todo-list">
+                <li class="todo-row">
+                  <span class="check-wrap">
+                    <input class="todo-check" type="checkbox" />
+                  </span>
+                  <span class="todo-text">Write the UX design spec</span>
+                  <button class="icon-btn" aria-label="Delete">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" /><path d="M14 11v6" />
+                    </svg>
+                  </button>
+                </li>
+                <li class="todo-row">
+                  <span class="check-wrap">
+                    <input class="todo-check" type="checkbox" />
+                  </span>
+                  <span class="todo-text">Review PRD with architecture notes</span>
+                  <button class="icon-btn" aria-label="Delete">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" /><path d="M14 11v6" />
+                    </svg>
+                  </button>
+                </li>
+              </ul>
+
+              <p class="section-heading">Completed</p>
+              <ul class="todo-list">
+                <li class="todo-row completed">
+                  <span class="check-wrap">
+                    <input class="todo-check" type="checkbox" checked />
+                  </span>
+                  <span class="todo-text">Scaffold the monorepo</span>
+                  <button class="icon-btn" aria-label="Delete">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" /><path d="M14 11v6" />
+                    </svg>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="annot">
+        Notes: Active section has no label (it is the default reading). "Completed"
+        section uses a muted label, no heavy line. Completed row shows all three
+        reinforcing signals (checkbox, strike-through, 60% opacity). At 320px,
+        the description wraps; tap targets preserved.
+      </p>
+
+      <!-- ========== DELETE MODAL ========== -->
+      <div class="section-label">03 · Delete confirmation modal</div>
+      <div class="grid grid-desktop">
+        <div class="frame device-desktop">
+          <div class="frame-caption"><strong>Desktop</strong><span>Modal open over populated list</span></div>
+          <div class="viewport" style="position:relative">
+            <div class="app">
+              <header class="app-header"><h2 class="app-title">Todos</h2></header>
+              <div class="add-row">
+                <input class="add-input" type="text" maxlength="500" placeholder="What needs doing?" />
+                <button class="btn btn-primary">Add</button>
+              </div>
+              <ul class="todo-list">
+                <li class="todo-row">
+                  <span class="check-wrap"><input class="todo-check" type="checkbox" /></span>
+                  <span class="todo-text">Write the UX design spec</span>
+                  <button class="icon-btn" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+                </li>
+              </ul>
+            </div>
+            <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title-1">
+              <div class="modal">
+                <h3 class="modal-title" id="modal-title-1">Delete this todo?</h3>
+                <p class="modal-body">This cannot be undone.</p>
+                <div class="modal-actions">
+                  <button class="btn btn-secondary">Cancel</button>
+                  <button class="btn btn-danger">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="frame device-mobile">
+          <div class="frame-caption"><strong>Mobile</strong><span>Modal open at 320px</span></div>
+          <div class="viewport" style="position:relative">
+            <div class="app">
+              <header class="app-header"><h2 class="app-title">Todos</h2></header>
+              <div class="add-row">
+                <input class="add-input" type="text" maxlength="500" placeholder="What needs doing?" />
+                <button class="btn btn-primary">Add</button>
+              </div>
+              <ul class="todo-list">
+                <li class="todo-row">
+                  <span class="check-wrap"><input class="todo-check" type="checkbox" /></span>
+                  <span class="todo-text">Review PRD with architecture notes</span>
+                  <button class="icon-btn" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+                </li>
+              </ul>
+            </div>
+            <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title-2">
+              <div class="modal">
+                <h3 class="modal-title" id="modal-title-2">Delete this todo?</h3>
+                <p class="modal-body">This cannot be undone.</p>
+                <div class="modal-actions">
+                  <button class="btn btn-secondary">Cancel</button>
+                  <button class="btn btn-danger">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="annot">
+        Notes: backdrop is 30% black, modal is white on soft shadow. Cancel is
+        secondary but same height/weight as Delete — equal dignity on both
+        options so Delete is not the visual default. Copy matches PRD exactly.
+      </p>
+
+      <!-- ========== INLINE ERROR ========== -->
+      <div class="section-label">04 · Inline error (create failure, preserved input)</div>
+      <div class="grid">
+        <div class="frame device-desktop">
+          <div class="frame-caption"><strong>Desktop</strong><span>Network failure on Add</span></div>
+          <div class="viewport">
+            <div class="app">
+              <header class="app-header"><h2 class="app-title">Todos</h2></header>
+              <div class="add-row">
+                <input class="add-input" type="text" maxlength="500" value="Finish the deploy runbook" aria-invalid="true" />
+                <button class="btn btn-primary" disabled style="opacity:0.6">Add</button>
+              </div>
+              <div class="inline-error" role="alert">
+                <span class="inline-error-text">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  Couldn't save. Check your connection.
+                </span>
+                <button class="btn btn-secondary" style="height:36px; min-width:0; padding:0 12px">Retry</button>
+              </div>
+              <ul class="todo-list" style="margin-top:16px">
+                <li class="todo-row">
+                  <span class="check-wrap"><input class="todo-check" type="checkbox" /></span>
+                  <span class="todo-text">Write the UX design spec</span>
+                  <button class="icon-btn" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="annot">
+        Notes: input preserves the user's typed text. Error banner sits inline,
+        at the site of the failure, with Retry at the right. No toast, no
+        full-screen overlay. Copy is factual, not apologetic.
+      </p>
+    </div>
+  </body>
+</html>
