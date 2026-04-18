@@ -9,7 +9,7 @@ inputDocuments:
   - '_bmad-output/planning-artifacts/product-brief.md'
 stepsCompleted: ['step-e-01-discovery', 'step-e-02-review', 'step-e-03-edit', 'step-e-04-polish']
 lastEdited: '2026-04-18'
-version: '1.1'
+version: '1.2'
 editHistory:
   - date: '2026-04-18'
     version: '1.0'
@@ -17,6 +17,9 @@ editHistory:
   - date: '2026-04-18'
     version: '1.1'
     changes: 'Applied three optional-polish improvements from the v1.0 validation report. (1) Reframed FR-006..FR-012 into strict [Actor] can [capability] form while preserving acceptance criteria and measurement posture. (2) Added journey traces to FR-005 (data model) and FR-012 (API contract) in addition to their Product Scope anchors. (3) Authored Journey 4 (Performance Under Sustained Use) to anchor SC-003 and NFR-001/NFR-002 to an explicit user narrative; updated NFR-001 and NFR-002 Source columns accordingly. Linked product-brief.md as input document.'
+  - date: '2026-04-18'
+    version: '1.2'
+    changes: 'Amended FR-012 to include the `/v1` API-version prefix on all four CRUD endpoints (POST /v1/todos, GET /v1/todos, PATCH /v1/todos/:id, DELETE /v1/todos/:id). Change originated during architecture workflow as an explicit contract boundary for future Growth/Vision additions. Endpoint verbs, resource name, request/response bodies, and status codes are unchanged.'
 ---
 
 # Product Requirements Document — Todo App
@@ -137,7 +140,7 @@ Deferred to Growth or Vision phases:
 | FR-009 | Users can access the app across the declared browser/device matrix (see Responsive Design & Browser Support) with correct rendering at every supported viewport. | Visual smoke test on all target browsers at declared viewports. Zero horizontal scroll at 320px. | Journey 2; SC-004 |
 | FR-010 | Users see an inline error at the point of failure for any failed CRUD action, with a Retry button and no loss of in-progress input. | Simulated network failure during create/complete/delete shows error UI. Retry re-fires the original request. Input preserved on create failure. | Journey 3; SC-002 |
 | FR-011 | Users' todos persist across page refresh, browser close, and server restart. | Automated integration test: create todo → stop/start server → fetch → todo present with identical id and fields. | Journey 2; SC-002 |
-| FR-012 | Users can perform CRUD on todos via `POST /todos`, `GET /todos`, `PATCH /todos/:id`, `DELETE /todos/:id` with JSON request/response bodies matching the FR-005 schema. | Contract test asserts endpoint shapes and status codes (201, 200, 200, 204). | Journeys 1, 2, 3; Product Scope |
+| FR-012 | Users can perform CRUD on todos via `POST /v1/todos`, `GET /v1/todos`, `PATCH /v1/todos/:id`, `DELETE /v1/todos/:id` with JSON request/response bodies matching the FR-005 schema. The `/v1` prefix is the explicit API-version contract boundary for future Growth/Vision additions. | Contract test asserts endpoint shapes and status codes (201, 200, 200, 204). | Journeys 1, 2, 3; Product Scope |
 
 ## Non-Functional Requirements
 
