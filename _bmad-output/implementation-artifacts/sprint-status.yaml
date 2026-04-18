@@ -1,0 +1,88 @@
+# generated: 2026-04-18
+# last_updated: 2026-04-18
+# project: todo-app
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {project-root}/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-04-18
+last_updated: 2026-04-18
+project: todo-app
+project_key: NOKEY
+tracking_system: file-system
+story_location: "{project-root}/_bmad-output/implementation-artifacts"
+
+development_status:
+  # Epic 1: Foundation & Walking Skeleton
+  epic-1: in-progress
+  1-1-monorepo-scaffold-with-docker-postgres: review
+  1-2-fastify-api-skeleton-with-healthz: backlog
+  1-3-database-layer-kysely-todos-migration-healthz-db-probe: backlog
+  1-4-api-plugin-stack-v1-prefix-global-error-handler: backlog
+  1-5-web-app-scaffold-vite-tailwind-v4-design-tokens-errorboundary-header: backlog
+  1-6-ci-pipeline-code-quality-gate-eslint-prettier-a11y-playwright-e2e-scaffold-onboarding-readme: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Create & View Todos
+  epic-2: backlog
+  2-1-typebox-schemas-todosrepo-create-post-v1-todos: backlog
+  2-2-todosrepo-listall-get-v1-todos-with-active-asc-ordering: backlog
+  2-3-web-api-client-typed-endpoints-usetodos-usecreatetodo-hooks: backlog
+  2-4-addtodoinput-component: backlog
+  2-5-todorow-non-completed-todolist-active-section-loadingskeleton-emptystate: backlog
+  2-6-end-to-end-wire-up-in-app-tsx-journey-1-complete: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Complete & Delete — Finish the Core Loop
+  epic-3: backlog
+  3-1-updatetodoinput-schema-todosrepo-update-patch-v1-todos-id: backlog
+  3-2-todosrepo-remove-delete-v1-todos-id: backlog
+  3-3-useoptimistictodomutation-factory-usetoggletodo-usedeletetodo-hooks: backlog
+  3-4-todorow-completed-state-todolist-completed-section-app-tsx-sectioning: backlog
+  3-5-deletetodomodal-component-app-tsx-delete-flow-journey-2-complete: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Failure-Proof User Experience
+  epic-4: backlog
+  4-1-inlineerror-component: backlog
+  4-2-create-failure-flow-addtodoinput-inline-error-with-preserved-input-retry: backlog
+  4-3-toggle-failure-row-anchored-error-delete-failure-modal-anchored-error: backlog
+  4-4-api-global-error-handler-coverage-persistence-integration-test-nfr-003: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Launch Quality — Accessibility, Responsive, Performance
+  epic-5: backlog
+  5-1-journey-4-perf-harness-nfr-001-nfr-002-verification: backlog
+  5-2-responsive-smoke-test-cross-browser-matrix-fr-009-sc-004-verification: backlog
+  5-3-keyboard-only-screen-reader-walkthroughs-manual-accessibility-verification: backlog
+  5-4-wcag-contrast-audit-launch-quality-checklist: backlog
+  epic-5-retrospective: optional
