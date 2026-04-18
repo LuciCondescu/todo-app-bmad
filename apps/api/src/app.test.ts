@@ -1,6 +1,62 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
+import {
+  DummyDriver,
+  Kysely,
+  PostgresAdapter,
+  PostgresIntrospector,
+  PostgresQueryCompiler,
+  type DatabaseConnection,
+  type Driver,
+} from 'kysely';
 import { buildApp } from './app.js';
+import type { Database } from './db/schema.js';
+
+// DummyDriver returns empty results without hitting a network — lets unit tests
+// use the real Kysely surface (compiler, adapter, plugins) with no live Postgres.
+function createDummyDb(): Kysely<Database> {
+  return new Kysely<Database>({
+    dialect: {
+      createAdapter: () => new PostgresAdapter(),
+      createDriver: () => new DummyDriver(),
+      createIntrospector: (db) => new PostgresIntrospector(db),
+      createQueryCompiler: () => new PostgresQueryCompiler(),
+    },
+  });
+}
+
+// ThrowingDriver simulates the degraded-DB case: every query throws, no network.
+// Matches the runtime behaviour of a broken connection without the teardown cost.
+class ThrowingDriver implements Driver {
+  async init(): Promise<void> {}
+  async acquireConnection(): Promise<DatabaseConnection> {
+    return {
+      executeQuery: async () => {
+        throw new Error('simulated DB probe failure');
+      },
+      // eslint-disable-next-line require-yield -- interface contract; body throws before yielding
+      streamQuery: async function* () {
+        throw new Error('simulated DB probe failure');
+      },
+    };
+  }
+  async beginTransaction(): Promise<void> {}
+  async commitTransaction(): Promise<void> {}
+  async rollbackTransaction(): Promise<void> {}
+  async releaseConnection(): Promise<void> {}
+  async destroy(): Promise<void> {}
+}
+
+function createThrowingDb(): Kysely<Database> {
+  return new Kysely<Database>({
+    dialect: {
+      createAdapter: () => new PostgresAdapter(),
+      createDriver: () => new ThrowingDriver(),
+      createIntrospector: (db) => new PostgresIntrospector(db),
+      createQueryCompiler: () => new PostgresQueryCompiler(),
+    },
+  });
+}
 
 describe('buildApp', () => {
   let app: FastifyInstance | undefined;
@@ -13,21 +69,42 @@ describe('buildApp', () => {
   });
 
   it('registers the /healthz route', async () => {
-    app = await buildApp({ config: { DATABASE_URL: 'postgresql://test' } });
+    app = await buildApp({
+      config: { DATABASE_URL: 'postgresql://test' },
+      db: createDummyDb(),
+    });
     expect(app.hasRoute({ method: 'GET', url: '/healthz' })).toBe(true);
   });
 
-  it('responds to GET /healthz with 200 { status: "ok" }', async () => {
-    app = await buildApp({ config: { DATABASE_URL: 'postgresql://test' } });
+  it('responds to GET /healthz with 200 { status: "ok", db: "ok" } when the DB probe succeeds', async () => {
+    app = await buildApp({
+      config: { DATABASE_URL: 'postgresql://test' },
+      db: createDummyDb(),
+    });
 
     const res = await app.inject({ method: 'GET', url: '/healthz' });
 
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toBe('application/json; charset=utf-8');
-    expect(res.json()).toEqual({ status: 'ok' });
+    expect(res.json()).toEqual({ status: 'ok', db: 'ok' });
+  });
+
+  it('responds to GET /healthz with 503 { status: "degraded", db: "error" } when the DB probe throws', async () => {
+    app = await buildApp({
+      config: { DATABASE_URL: 'postgresql://test' },
+      db: createThrowingDb(),
+    });
+    const errSpy = vi.spyOn(app.log, 'error').mockImplementation(() => {});
+
+    const res = await app.inject({ method: 'GET', url: '/healthz' });
+
+    expect(res.statusCode).toBe(503);
+    expect(res.headers['content-type']).toBe('application/json; charset=utf-8');
+    expect(res.json()).toEqual({ status: 'degraded', db: 'error' });
+    expect(errSpy).toHaveBeenCalledTimes(1);
   });
 
   it('fails fast when DATABASE_URL is missing', async () => {
-    await expect(buildApp({ config: {} })).rejects.toThrow(/DATABASE_URL/i);
+    await expect(buildApp({ config: {}, db: createDummyDb() })).rejects.toThrow(/DATABASE_URL/i);
   });
 });
