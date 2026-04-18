@@ -1,5 +1,6 @@
 # generated: 2026-04-18
 # last_updated: 2026-04-18
+# Note: updated for Story 1.2 → done
 # project: todo-app
 # project_key: NOKEY
 # tracking_system: file-system
@@ -45,7 +46,7 @@ development_status:
   # Epic 1: Foundation & Walking Skeleton
   epic-1: in-progress
   1-1-monorepo-scaffold-with-docker-postgres: done
-  1-2-fastify-api-skeleton-with-healthz: backlog
+  1-2-fastify-api-skeleton-with-healthz: done
   1-3-database-layer-kysely-todos-migration-healthz-db-probe: backlog
   1-4-api-plugin-stack-v1-prefix-global-error-handler: backlog
   1-5-web-app-scaffold-vite-tailwind-v4-design-tokens-errorboundary-header: backlog
