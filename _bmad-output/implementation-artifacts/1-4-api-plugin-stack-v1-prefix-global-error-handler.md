@@ -1,6 +1,6 @@
 # Story 1.4: API plugin stack + `/v1` prefix + global error handler
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

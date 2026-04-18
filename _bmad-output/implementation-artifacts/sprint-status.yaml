@@ -1,6 +1,6 @@
 # generated: 2026-04-18
 # last_updated: 2026-04-18
-# Note: Story 1.4 transitioned to review (dev-story complete; 30/30 tests pass)
+# Note: Story 1.5 → done (manual code review approved)
 # project: todo-app
 # project_key: NOKEY
 # tracking_system: file-system
@@ -48,8 +48,8 @@ development_status:
   1-1-monorepo-scaffold-with-docker-postgres: done
   1-2-fastify-api-skeleton-with-healthz: done
   1-3-database-layer-kysely-todos-migration-healthz-db-probe: done
-  1-4-api-plugin-stack-v1-prefix-global-error-handler: review
-  1-5-web-app-scaffold-vite-tailwind-v4-design-tokens-errorboundary-header: ready-for-dev
+  1-4-api-plugin-stack-v1-prefix-global-error-handler: done
+  1-5-web-app-scaffold-vite-tailwind-v4-design-tokens-errorboundary-header: done
   1-6-ci-pipeline-code-quality-gate-eslint-prettier-a11y-playwright-e2e-scaffold-onboarding-readme: ready-for-dev
   epic-1-retrospective: optional
 
