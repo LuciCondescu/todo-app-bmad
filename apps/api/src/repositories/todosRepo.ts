@@ -21,3 +21,20 @@ export async function create(input: { description: string }, db: Kysely<Database
     userId: row.userId,
   };
 }
+
+export async function listAll(db: Kysely<Database>): Promise<Todo[]> {
+  const rows = await db
+    .selectFrom('todos')
+    .selectAll()
+    .orderBy('completed', 'asc')
+    .orderBy('createdAt', 'asc')
+    .execute();
+
+  return rows.map((row) => ({
+    id: row.id,
+    description: row.description,
+    completed: row.completed,
+    createdAt: row.createdAt.toISOString(),
+    userId: row.userId,
+  }));
+}

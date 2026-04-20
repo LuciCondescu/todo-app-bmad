@@ -1,3 +1,4 @@
+import { Type } from '@sinclair/typebox';
 import type { FastifyPluginAsync } from 'fastify';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { CreateTodoInputSchema, TodoSchema } from '../schemas/todo.js';
@@ -24,7 +25,19 @@ const todosRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // Handlers for GET /todos, PATCH /todos/:id, DELETE /todos/:id land in stories 2.2, 3.1, 3.2.
+  typedApp.get(
+    '/todos',
+    {
+      schema: {
+        response: { 200: Type.Array(TodoSchema) },
+      },
+    },
+    async () => {
+      return todosRepo.listAll(app.db);
+    },
+  );
+
+  // Handlers for PATCH /todos/:id, DELETE /todos/:id land in stories 3.1, 3.2.
 };
 
 export default todosRoutes;

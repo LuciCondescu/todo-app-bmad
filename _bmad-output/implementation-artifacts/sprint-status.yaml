@@ -1,5 +1,5 @@
 # generated: 2026-04-18
-# last_updated: 2026-04-20
+# last_updated: 2026-04-20 (Story 2.2 → review; 64 api + 9 web tests pass; typecheck/lint/format clean; contract + unit + smoke verified)
 # Note: Story 2.1 → review (59 tests pass; typecheck/lint/format clean; contract test against real Postgres)
 # project: todo-app
 # project_key: NOKEY
@@ -56,9 +56,9 @@ development_status:
   # Epic 2: Create & View Todos
   epic-2: in-progress
   2-1-typebox-schemas-todosrepo-create-post-v1-todos: review
-  2-2-todosrepo-listall-get-v1-todos-with-active-asc-ordering: ready-for-dev
+  2-2-todosrepo-listall-get-v1-todos-with-active-asc-ordering: review
   2-3-web-api-client-typed-endpoints-usetodos-usecreatetodo-hooks: ready-for-dev
-  2-4-addtodoinput-component: backlog
+  2-4-addtodoinput-component: ready-for-dev
   2-5-todorow-non-completed-todolist-active-section-loadingskeleton-emptystate: backlog
   2-6-end-to-end-wire-up-in-app-tsx-journey-1-complete: backlog
   epic-2-retrospective: optional

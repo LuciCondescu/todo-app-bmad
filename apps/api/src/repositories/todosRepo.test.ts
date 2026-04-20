@@ -73,6 +73,23 @@ function createSeedingDb(seedRow: Record<string, unknown>): {
 const UUID_V7_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ISO_UTC_MS_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
+describe('todosRepo.listAll — compiled SELECT shape (DummyDriver)', () => {
+  it('compiles to SELECT * FROM todos ORDER BY completed ASC, created_at ASC with no WHERE clause', () => {
+    const db = createDummyDb();
+    const compiled = db
+      .selectFrom('todos')
+      .selectAll()
+      .orderBy('completed', 'asc')
+      .orderBy('createdAt', 'asc')
+      .compile();
+
+    expect(compiled.sql).toMatch(/select\s+\*\s+from\s+"todos"/i);
+    expect(compiled.sql).toMatch(/order\s+by\s+"completed"\s+asc,\s+"created_at"\s+asc/i);
+    expect(compiled.sql).not.toMatch(/where/i);
+    expect(compiled.parameters).toEqual([]);
+  });
+});
+
 describe('todosRepo.create — compiled insert shape (DummyDriver)', () => {
   it('compiles to INSERT INTO "todos" (...) RETURNING * with snake_case user_id column', () => {
     const db = createDummyDb();
