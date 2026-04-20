@@ -25,7 +25,22 @@ export interface BuildAppOptions {
 }
 
 export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInstance> {
-  const app = fastify({ logger: buildLoggerConfig(), bodyLimit: 65_536 });
+  const app = fastify({
+    logger: buildLoggerConfig(),
+    bodyLimit: 65_536,
+    ajv: {
+      // Fastify 5's defaults, minus `removeAdditional: 'all'` — we keep unknown
+      // keys on the body so `additionalProperties: false` returns 400 instead
+      // of silently stripping (AC4 case #4).
+      customOptions: {
+        coerceTypes: 'array',
+        useDefaults: true,
+        removeAdditional: false,
+        allErrors: false,
+      },
+      plugins: [addFormats],
+    },
+  });
 
   try {
     await app.register(fastifyEnv, {

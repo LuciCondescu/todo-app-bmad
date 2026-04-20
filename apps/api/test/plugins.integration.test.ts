@@ -92,13 +92,13 @@ describe('plugin stack integration — CORS, helmet, rate-limit, swagger, /v1 pr
     });
   });
 
-  it('POST /v1/todos returns the 404 envelope (handlers arrive in Epic 2)', async () => {
+  it('POST /v1/todos with missing body returns the 400 envelope (schema validation active per story 2.1)', async () => {
     app = await buildApp();
 
     const res = await app.inject({ method: 'POST', url: '/v1/todos' });
 
-    expect(res.statusCode).toBe(404);
-    expect(res.json()).toMatchObject({ statusCode: 404, error: 'Not Found' });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ statusCode: 400, error: 'Bad Request' });
   });
 
   it('GET /healthz still returns 200 { status: "ok", db: "ok" } (regression guard for /v1 mount)', async () => {

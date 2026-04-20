@@ -1,6 +1,6 @@
 # generated: 2026-04-18
-# last_updated: 2026-04-18
-# Note: Story 1.6 → review (39 unit/integration + 2 E2E pass; `npm run check` exits 0)
+# last_updated: 2026-04-20
+# Note: Story 2.1 → review (59 tests pass; typecheck/lint/format clean; contract test against real Postgres)
 # project: todo-app
 # project_key: NOKEY
 # tracking_system: file-system
@@ -36,7 +36,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-18
-last_updated: 2026-04-18
+last_updated: 2026-04-20
 project: todo-app
 project_key: NOKEY
 tracking_system: file-system
@@ -54,10 +54,10 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Create & View Todos
-  epic-2: backlog
-  2-1-typebox-schemas-todosrepo-create-post-v1-todos: backlog
-  2-2-todosrepo-listall-get-v1-todos-with-active-asc-ordering: backlog
-  2-3-web-api-client-typed-endpoints-usetodos-usecreatetodo-hooks: backlog
+  epic-2: in-progress
+  2-1-typebox-schemas-todosrepo-create-post-v1-todos: review
+  2-2-todosrepo-listall-get-v1-todos-with-active-asc-ordering: ready-for-dev
+  2-3-web-api-client-typed-endpoints-usetodos-usecreatetodo-hooks: ready-for-dev
   2-4-addtodoinput-component: backlog
   2-5-todorow-non-completed-todolist-active-section-loadingskeleton-emptystate: backlog
   2-6-end-to-end-wire-up-in-app-tsx-journey-1-complete: backlog

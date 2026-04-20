@@ -68,14 +68,14 @@ describe('buildApp', () => {
     }
   });
 
-  it('registers the /healthz and /docs routes, and leaves /v1/todos unregistered', async () => {
+  it('registers the /healthz, /docs, and POST /v1/todos routes; GET /v1/todos still unregistered (story 2.2)', async () => {
     app = await buildApp({
       config: { DATABASE_URL: 'postgresql://test' },
       db: createDummyDb(),
     });
     expect(app.hasRoute({ method: 'GET', url: '/healthz' })).toBe(true);
     expect(app.hasRoute({ method: 'GET', url: '/docs' })).toBe(true);
-    expect(app.hasRoute({ method: 'POST', url: '/v1/todos' })).toBe(false);
+    expect(app.hasRoute({ method: 'POST', url: '/v1/todos' })).toBe(true);
     expect(app.hasRoute({ method: 'GET', url: '/v1/todos' })).toBe(false);
   });
 
@@ -120,7 +120,7 @@ describe('buildApp', () => {
     ).rejects.toThrow(/format|uri/i);
   });
 
-  it('returns a 404 envelope for POST /v1/todos (no handlers registered yet)', async () => {
+  it('returns a 400 envelope for POST /v1/todos with missing body (schema validation via TypeBox + AJV)', async () => {
     app = await buildApp({
       config: { DATABASE_URL: 'postgresql://test' },
       db: createDummyDb(),
@@ -128,8 +128,24 @@ describe('buildApp', () => {
 
     const res = await app.inject({ method: 'POST', url: '/v1/todos' });
 
-    expect(res.statusCode).toBe(404);
-    expect(res.json()).toMatchObject({ statusCode: 404, error: 'Not Found' });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ statusCode: 400, error: 'Bad Request' });
+  });
+
+  it('returns a 400 envelope for POST /v1/todos with unknown keys (additionalProperties: false)', async () => {
+    app = await buildApp({
+      config: { DATABASE_URL: 'postgresql://test' },
+      db: createDummyDb(),
+    });
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/v1/todos',
+      payload: { description: 'ok', extra: 'field' },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ statusCode: 400, error: 'Bad Request' });
   });
 
   it('returns a 404 envelope for an unknown root path', async () => {
