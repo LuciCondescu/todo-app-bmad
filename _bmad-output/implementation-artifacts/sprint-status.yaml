@@ -1,5 +1,5 @@
 # generated: 2026-04-18
-# last_updated: 2026-04-20 (Story 2.4 → review; 64 api + 50 web = 114 tests pass; AddTodoInput component added with 15 unit + 3 a11y tests)
+# last_updated: 2026-04-20 (Story 2.5 → review; Story 2.6 → ready-for-dev; 64 api + 90 web = 154 tests pass; TodoRow/TodoList/LoadingSkeleton/EmptyState added with 33 unit + 7 a11y tests)
 # Note: Story 2.1 → review (59 tests pass; typecheck/lint/format clean; contract test against real Postgres)
 # project: todo-app
 # project_key: NOKEY
@@ -59,8 +59,8 @@ development_status:
   2-2-todosrepo-listall-get-v1-todos-with-active-asc-ordering: review
   2-3-web-api-client-typed-endpoints-usetodos-usecreatetodo-hooks: review
   2-4-addtodoinput-component: review
-  2-5-todorow-non-completed-todolist-active-section-loadingskeleton-emptystate: backlog
-  2-6-end-to-end-wire-up-in-app-tsx-journey-1-complete: backlog
+  2-5-todorow-non-completed-todolist-active-section-loadingskeleton-emptystate: review
+  2-6-end-to-end-wire-up-in-app-tsx-journey-1-complete: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Complete & Delete — Finish the Core Loop
