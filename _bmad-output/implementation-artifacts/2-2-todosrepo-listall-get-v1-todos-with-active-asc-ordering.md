@@ -1,6 +1,6 @@
 # Story 2.2: `todosRepo.listAll` + `GET /v1/todos` with active-ASC ordering
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

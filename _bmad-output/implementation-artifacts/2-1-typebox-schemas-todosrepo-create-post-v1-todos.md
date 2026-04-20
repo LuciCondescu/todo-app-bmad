@@ -1,6 +1,6 @@
 # Story 2.1: TypeBox schemas + `todosRepo.create` + `POST /v1/todos`
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
