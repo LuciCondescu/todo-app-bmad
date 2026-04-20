@@ -17,7 +17,10 @@ function loadWorkspaceEnv(): void {
     const eq = line.indexOf('=');
     if (eq <= 0) continue;
     const key = line.slice(0, eq).trim();
-    const value = line.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const value = line
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (process.env[key] === undefined) {
       process.env[key] = value;
     }
@@ -36,7 +39,10 @@ async function main() {
   const args = new Set(process.argv.slice(2));
   const reset = args.has('--reset');
 
-  if (reset && !(connectionString.includes('localhost') || connectionString.includes('127.0.0.1'))) {
+  if (
+    reset &&
+    !(connectionString.includes('localhost') || connectionString.includes('127.0.0.1'))
+  ) {
     console.error('Refusing --reset against a non-local DATABASE_URL');
     process.exit(1);
   }
@@ -54,14 +60,18 @@ async function main() {
       if (downErr) throw downErr;
       for (const r of downResults ?? []) {
         console.log(
-          r.status === 'Success' ? `reverted ${r.migrationName}` : `failed to revert ${r.migrationName}`,
+          r.status === 'Success'
+            ? `reverted ${r.migrationName}`
+            : `failed to revert ${r.migrationName}`,
         );
       }
     }
 
     const { error, results } = await migrator.migrateToLatest();
     for (const r of results ?? []) {
-      console.log(r.status === 'Success' ? `applied ${r.migrationName}` : `failed ${r.migrationName}`);
+      console.log(
+        r.status === 'Success' ? `applied ${r.migrationName}` : `failed ${r.migrationName}`,
+      );
     }
     if (error) {
       console.error(error);

@@ -7,6 +7,11 @@ dist/
 # Test coverage reports
 apps/api/coverage/
 
+# Playwright
+playwright-report/
+test-results/
+.playwright/
+
 # Env
 .env
 .env.local

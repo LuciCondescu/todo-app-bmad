@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+apps/**/dist/
+apps/**/coverage/
+playwright-report/
+test-results/
+.playwright/
+_bmad-output/
+_bmad/
+.claude/
+*.lock
+package-lock.json
+*.md

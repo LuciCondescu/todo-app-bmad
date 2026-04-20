@@ -3,9 +3,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FileMigrationProvider, Migrator, sql, type Kysely } from 'kysely';
 
-const MIGRATIONS_FOLDER = fileURLToPath(
-  new URL('../src/db/migrations', import.meta.url),
-);
+const MIGRATIONS_FOLDER = fileURLToPath(new URL('../src/db/migrations', import.meta.url));
 
 const WORKSPACE_ENV_FILE = fileURLToPath(new URL('../.env', import.meta.url));
 
@@ -21,7 +19,10 @@ function loadWorkspaceEnv(): void {
     const eq = line.indexOf('=');
     if (eq <= 0) continue;
     const key = line.slice(0, eq).trim();
-    const value = line.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    const value = line
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     if (process.env[key] === undefined) {
       process.env[key] = value;
     }

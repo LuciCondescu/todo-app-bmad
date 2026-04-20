@@ -5,7 +5,10 @@ export default fp(
   async (app) => {
     const raw = app.config.CORS_ORIGIN;
     const origins = raw.includes(',')
-      ? raw.split(',').map((s) => s.trim()).filter(Boolean)
+      ? raw
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : raw;
     await app.register(cors, { origin: origins });
   },
