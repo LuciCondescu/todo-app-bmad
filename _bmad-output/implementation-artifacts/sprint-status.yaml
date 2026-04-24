@@ -1,5 +1,5 @@
 # generated: 2026-04-18
-# last_updated: 2026-04-24 (Stories 4.1 + 4.2 context engineered → ready-for-dev; epic-4 in-progress; Story 4.2 depends on 4.1 landing first)
+# last_updated: 2026-04-24 (Story 4.3 context engineered → ready-for-dev; Story 4.1 in review; Story 4.2 ready-for-dev; epic-4 in-progress)
 # Note: Story 2.1 → review (59 tests pass; typecheck/lint/format clean; contract test against real Postgres)
 # project: todo-app
 # project_key: NOKEY
@@ -74,9 +74,9 @@ development_status:
 
   # Epic 4: Failure-Proof User Experience
   epic-4: in-progress
-  4-1-inlineerror-component: ready-for-dev
+  4-1-inlineerror-component: review
   4-2-create-failure-flow-addtodoinput-inline-error-with-preserved-input-retry: ready-for-dev
-  4-3-toggle-failure-row-anchored-error-delete-failure-modal-anchored-error: backlog
+  4-3-toggle-failure-row-anchored-error-delete-failure-modal-anchored-error: ready-for-dev
   4-4-api-global-error-handler-coverage-persistence-integration-test-nfr-003: backlog
   epic-4-retrospective: optional
 
