@@ -12,6 +12,7 @@ import {
   type QueryResult,
 } from 'kysely';
 import type { Database } from '../db/schema.js';
+import { NotFoundError } from '../errors/index.js';
 import * as todosRepo from './todosRepo.js';
 
 function createDummyDb(): Kysely<Database> {
@@ -256,5 +257,79 @@ describe('todosRepo.create — behavior (SeedingDriver)', () => {
     });
 
     await expect(todosRepo.create({ description: 'x' }, db)).rejects.toThrow();
+  });
+});
+
+describe('todosRepo.update — compiled UPDATE shape (DummyDriver)', () => {
+  it('compiles to UPDATE "todos" SET "completed" = $1 WHERE "id" = $2 RETURNING *', () => {
+    const db = createDummyDb();
+    const compiled = db
+      .updateTable('todos')
+      .set({ completed: true })
+      .where('id', '=', 'some-id')
+      .returningAll()
+      .compile();
+
+    expect(compiled.sql).toMatch(/update\s+"todos"\s+set\s+"completed"/i);
+    expect(compiled.sql).toMatch(/where\s+"id"\s+=/i);
+    expect(compiled.sql).toMatch(/returning\s+\*/i);
+    expect(compiled.parameters).toEqual([true, 'some-id']);
+  });
+});
+
+describe('todosRepo.update — behavior (SeedingDriver)', () => {
+  it('returns a Todo with updated completed field and serialized createdAt on existing row', async () => {
+    const createdAt = new Date('2026-04-20T10:30:00.000Z');
+    const { db } = createSeedingDb({
+      id: '01957890-abcd-7def-8000-000000000000',
+      description: 'Existing todo',
+      completed: true,
+      created_at: createdAt,
+      user_id: null,
+    });
+
+    const todo = await todosRepo.update(
+      '01957890-abcd-7def-8000-000000000000',
+      { completed: true },
+      db,
+    );
+
+    expect(todo).toEqual({
+      id: '01957890-abcd-7def-8000-000000000000',
+      description: 'Existing todo',
+      completed: true,
+      createdAt: '2026-04-20T10:30:00.000Z',
+      userId: null,
+    });
+    expect(todo.createdAt).toMatch(ISO_UTC_MS_REGEX);
+  });
+
+  it('throws NotFoundError with an id-echoing message when the UPDATE affects zero rows', async () => {
+    // Override the SeedingDriver to always return empty rows — mirrors the
+    // zero-rows pattern used in the create() executeTakeFirstOrThrow test above.
+    const driver = new SeedingDriver({});
+    driver.acquireConnection = async () => ({
+      executeQuery: async () => ({ rows: [] }),
+      // eslint-disable-next-line require-yield -- interface contract
+      streamQuery: async function* () {
+        throw new Error('unused');
+      },
+    });
+    const db = new Kysely<Database>({
+      dialect: {
+        createAdapter: () => new PostgresAdapter(),
+        createDriver: () => driver,
+        createIntrospector: (innerDb) => new PostgresIntrospector(innerDb),
+        createQueryCompiler: () => new PostgresQueryCompiler(),
+      },
+      plugins: [new CamelCasePlugin()],
+    });
+
+    await expect(todosRepo.update('ghost-id', { completed: true }, db)).rejects.toThrow(
+      NotFoundError,
+    );
+    await expect(todosRepo.update('ghost-id', { completed: true }, db)).rejects.toThrow(
+      /^Todo ghost-id not found$/,
+    );
   });
 });

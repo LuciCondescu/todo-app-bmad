@@ -68,7 +68,7 @@ describe('buildApp', () => {
     }
   });
 
-  it('registers the /healthz, /docs, POST /v1/todos, and GET /v1/todos routes', async () => {
+  it('registers the /healthz, /docs, POST /v1/todos, GET /v1/todos, and PATCH /v1/todos/:id routes', async () => {
     app = await buildApp({
       config: { DATABASE_URL: 'postgresql://test' },
       db: createDummyDb(),
@@ -77,6 +77,7 @@ describe('buildApp', () => {
     expect(app.hasRoute({ method: 'GET', url: '/docs' })).toBe(true);
     expect(app.hasRoute({ method: 'POST', url: '/v1/todos' })).toBe(true);
     expect(app.hasRoute({ method: 'GET', url: '/v1/todos' })).toBe(true);
+    expect(app.hasRoute({ method: 'PATCH', url: '/v1/todos/:id' })).toBe(true);
   });
 
   it('responds to GET /healthz with 200 { status: "ok", db: "ok" } when the DB probe succeeds', async () => {

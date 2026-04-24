@@ -29,11 +29,14 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
     logger: buildLoggerConfig(),
     bodyLimit: 65_536,
     ajv: {
-      // Fastify 5's defaults, minus `removeAdditional: 'all'` — we keep unknown
-      // keys on the body so `additionalProperties: false` returns 400 instead
-      // of silently stripping (AC4 case #4).
+      // Fastify 5's defaults, minus two changes:
+      // - `removeAdditional: 'all'` → `false`: keep unknown body keys so
+      //   `additionalProperties: false` returns 400 instead of silently stripping.
+      // - `coerceTypes: 'array'` → `false`: require strict types. Story 3.1 AC4
+      //   needs `{ completed: 'true' }` and `{ completed: 1 }` to reject as 400
+      //   (AJV's default coercion would otherwise turn both into `true`).
       customOptions: {
-        coerceTypes: 'array',
+        coerceTypes: false,
         useDefaults: true,
         removeAdditional: false,
         allErrors: false,

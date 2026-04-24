@@ -19,3 +19,11 @@ export const CreateTodoInputSchema = Type.Object(
   { $id: 'CreateTodoInput', additionalProperties: false },
 );
 export type CreateTodoInput = Static<typeof CreateTodoInputSchema>;
+
+export const UpdateTodoInputSchema = Type.Object(
+  {
+    completed: Type.Boolean(),
+  },
+  { $id: 'UpdateTodoInput', additionalProperties: false },
+);
+export type UpdateTodoInput = Static<typeof UpdateTodoInputSchema>;

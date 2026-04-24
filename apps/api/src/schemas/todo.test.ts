@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { FormatRegistry } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 import { v7 as uuidv7 } from 'uuid';
-import { TodoSchema, CreateTodoInputSchema } from './todo.js';
+import { TodoSchema, CreateTodoInputSchema, UpdateTodoInputSchema } from './todo.js';
 
 // TypeBox 0.34's Value.Check fails on unknown formats (it does NOT silently pass
 // through as the spec's Dev Notes implied). Register the two formats the schemas
@@ -57,5 +57,29 @@ describe('TodoSchema', () => {
   it('rejects a todo missing createdAt', () => {
     const { createdAt: _c, ...rest } = validTodo;
     expect(Value.Check(TodoSchema, rest)).toBe(false);
+  });
+});
+
+describe('UpdateTodoInputSchema', () => {
+  it('rejects missing completed', () => {
+    expect(Value.Check(UpdateTodoInputSchema, {})).toBe(false);
+  });
+  it('rejects non-boolean completed (string)', () => {
+    expect(Value.Check(UpdateTodoInputSchema, { completed: 'true' })).toBe(false);
+  });
+  it('rejects non-boolean completed (number)', () => {
+    expect(Value.Check(UpdateTodoInputSchema, { completed: 1 })).toBe(false);
+  });
+  it('rejects unknown key description (additionalProperties: false)', () => {
+    expect(Value.Check(UpdateTodoInputSchema, { completed: true, description: 'x' })).toBe(false);
+  });
+  it('rejects unknown key id (additionalProperties: false)', () => {
+    expect(Value.Check(UpdateTodoInputSchema, { completed: true, id: 'x' })).toBe(false);
+  });
+  it('accepts { completed: true }', () => {
+    expect(Value.Check(UpdateTodoInputSchema, { completed: true })).toBe(true);
+  });
+  it('accepts { completed: false }', () => {
+    expect(Value.Check(UpdateTodoInputSchema, { completed: false })).toBe(true);
   });
 });

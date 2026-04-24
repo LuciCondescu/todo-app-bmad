@@ -229,3 +229,120 @@ describe('GET /v1/todos — contract', () => {
     }
   });
 });
+
+describe('PATCH /v1/todos/:id — contract', () => {
+  const T_ACTIVE = '01927f00-0000-7000-8000-000000000011';
+  const T_COMPLETED = '01927f00-0000-7000-8000-000000000012';
+  const GHOST = '00000000-0000-0000-0000-000000000000';
+
+  async function seed() {
+    await app.db
+      .insertInto('todos')
+      .values([
+        { id: T_ACTIVE, description: 'Active row', completed: false, userId: null },
+        { id: T_COMPLETED, description: 'Completed row', completed: true, userId: null },
+      ])
+      .execute();
+  }
+
+  it('returns 200 with updated Todo when flipping active → completed', async () => {
+    await seed();
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/v1/todos/${T_ACTIVE}`,
+      payload: { completed: true },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(Value.Check(TodoSchema, body)).toBe(true);
+    expect(body.id).toBe(T_ACTIVE);
+    expect(body.description).toBe('Active row');
+    expect(body.completed).toBe(true);
+    expect(body.createdAt).toMatch(ISO_UTC_MS_REGEX);
+    expect(body.userId).toBeNull();
+  });
+
+  it('returns 200 with updated Todo when flipping completed → active (toggle-back)', async () => {
+    await seed();
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/v1/todos/${T_COMPLETED}`,
+      payload: { completed: false },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.json().completed).toBe(false);
+  });
+
+  it('persists the update — a direct Kysely read reflects the new completed value', async () => {
+    await seed();
+    await app.inject({
+      method: 'PATCH',
+      url: `/v1/todos/${T_ACTIVE}`,
+      payload: { completed: true },
+    });
+
+    const row = await app.db
+      .selectFrom('todos')
+      .selectAll()
+      .where('id', '=', T_ACTIVE)
+      .executeTakeFirstOrThrow();
+
+    expect(row.completed).toBe(true);
+  });
+
+  it.each([
+    ['missing completed', {}],
+    ['string completed', { completed: 'true' }],
+    ['number completed', { completed: 1 }],
+    ['extra description key', { completed: true, description: 'x' }],
+    ['extra id key', { completed: true, id: 'x' }],
+  ])('returns 400 on %s', async (_label, payload) => {
+    await seed();
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/v1/todos/${T_ACTIVE}`,
+      payload,
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ statusCode: 400, error: 'Bad Request' });
+  });
+
+  it('returns 400 on invalid path param (format: uuid violated)', async () => {
+    const res = await app.inject({
+      method: 'PATCH',
+      url: '/v1/todos/not-a-uuid',
+      payload: { completed: true },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ statusCode: 400, error: 'Bad Request' });
+  });
+
+  it('returns 404 with id-echoing message on non-existent id', async () => {
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/v1/todos/${GHOST}`,
+      payload: { completed: true },
+    });
+
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
+      message: `Todo ${GHOST} not found`,
+    });
+  });
+
+  it('exposes UpdateTodoInput in /docs/json components.schemas', async () => {
+    const res = await app.inject({ method: 'GET', url: '/docs/json' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.components.schemas).toHaveProperty('UpdateTodoInput');
+    expect(body.components.schemas.UpdateTodoInput.properties).toMatchObject({
+      completed: expect.any(Object),
+    });
+  });
+});

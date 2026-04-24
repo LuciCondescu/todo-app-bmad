@@ -2,13 +2,14 @@ import fp from 'fastify-plugin';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { ErrorResponseSchema } from '../schemas/errors.js';
-import { TodoSchema, CreateTodoInputSchema } from '../schemas/todo.js';
+import { TodoSchema, CreateTodoInputSchema, UpdateTodoInputSchema } from '../schemas/todo.js';
 
 export default fp(
   async (app) => {
     app.addSchema(ErrorResponseSchema);
     app.addSchema(TodoSchema);
     app.addSchema(CreateTodoInputSchema);
+    app.addSchema(UpdateTodoInputSchema);
 
     await app.register(swagger, {
       openapi: {

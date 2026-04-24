@@ -1,5 +1,5 @@
 # generated: 2026-04-18
-# last_updated: 2026-04-20 (Epic 2 DONE: all 6 stories reviewed and approved; 64 api + 100 web + 6 Playwright = 170 tests pass; Journey 1 complete end-to-end)
+# last_updated: 2026-04-24 (Story 3.1 implemented → review; 85 API tests pass, 100 web tests unchanged; AJV coerceTypes disabled for boolean-body strictness)
 # Note: Story 2.1 → review (59 tests pass; typecheck/lint/format clean; contract test against real Postgres)
 # project: todo-app
 # project_key: NOKEY
@@ -36,7 +36,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-18
-last_updated: 2026-04-20
+last_updated: 2026-04-24
 project: todo-app
 project_key: NOKEY
 tracking_system: file-system
@@ -64,8 +64,8 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Complete & Delete — Finish the Core Loop
-  epic-3: backlog
-  3-1-updatetodoinput-schema-todosrepo-update-patch-v1-todos-id: backlog
+  epic-3: in-progress
+  3-1-updatetodoinput-schema-todosrepo-update-patch-v1-todos-id: review
   3-2-todosrepo-remove-delete-v1-todos-id: backlog
   3-3-useoptimistictodomutation-factory-usetoggletodo-usedeletetodo-hooks: backlog
   3-4-todorow-completed-state-todolist-completed-section-app-tsx-sectioning: backlog

@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifyPluginAsync } from 'fastify';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { CreateTodoInputSchema, TodoSchema } from '../schemas/todo.js';
+import { CreateTodoInputSchema, TodoSchema, UpdateTodoInputSchema } from '../schemas/todo.js';
 import * as todosRepo from '../repositories/todosRepo.js';
 
 const todosRoutes: FastifyPluginAsync = async (app) => {
@@ -37,7 +37,28 @@ const todosRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // Handlers for PATCH /todos/:id, DELETE /todos/:id land in stories 3.1, 3.2.
+  typedApp.patch(
+    '/todos/:id',
+    {
+      schema: {
+        params: Type.Object(
+          { id: Type.String({ format: 'uuid' }) },
+          { additionalProperties: false },
+        ),
+        body: UpdateTodoInputSchema,
+        response: {
+          200: TodoSchema,
+          400: { $ref: 'ErrorResponse#' },
+          404: { $ref: 'ErrorResponse#' },
+        },
+      },
+    },
+    async (request) => {
+      return todosRepo.update(request.params.id, request.body, app.db);
+    },
+  );
+
+  // Handler for DELETE /todos/:id lands in story 3.2.
 };
 
 export default todosRoutes;
