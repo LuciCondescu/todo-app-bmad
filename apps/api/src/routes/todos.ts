@@ -1,8 +1,14 @@
 import { Type } from '@sinclair/typebox';
 import type { FastifyPluginAsync } from 'fastify';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { NotFoundError } from '../errors/index.js';
 import { CreateTodoInputSchema, TodoSchema, UpdateTodoInputSchema } from '../schemas/todo.js';
 import * as todosRepo from '../repositories/todosRepo.js';
+
+const TodoIdParamsSchema = Type.Object(
+  { id: Type.String({ format: 'uuid' }) },
+  { additionalProperties: false },
+);
 
 const todosRoutes: FastifyPluginAsync = async (app) => {
   const typedApp = app.withTypeProvider<TypeBoxTypeProvider>();
@@ -41,10 +47,7 @@ const todosRoutes: FastifyPluginAsync = async (app) => {
     '/todos/:id',
     {
       schema: {
-        params: Type.Object(
-          { id: Type.String({ format: 'uuid' }) },
-          { additionalProperties: false },
-        ),
+        params: TodoIdParamsSchema,
         body: UpdateTodoInputSchema,
         response: {
           200: TodoSchema,
@@ -58,7 +61,26 @@ const todosRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // Handler for DELETE /todos/:id lands in story 3.2.
+  typedApp.delete(
+    '/todos/:id',
+    {
+      schema: {
+        params: TodoIdParamsSchema,
+        response: {
+          204: Type.Null({ description: 'No Content' }),
+          400: { $ref: 'ErrorResponse#' },
+          404: { $ref: 'ErrorResponse#' },
+        },
+      },
+    },
+    async (request, reply) => {
+      const affected = await todosRepo.remove(request.params.id, app.db);
+      if (affected === 0) {
+        throw new NotFoundError(`Todo ${request.params.id} not found`);
+      }
+      return reply.status(204).send(null);
+    },
+  );
 };
 
 export default todosRoutes;

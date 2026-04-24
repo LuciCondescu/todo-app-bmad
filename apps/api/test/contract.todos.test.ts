@@ -346,3 +346,96 @@ describe('PATCH /v1/todos/:id — contract', () => {
     });
   });
 });
+
+describe('DELETE /v1/todos/:id — contract', () => {
+  const T_EXIST = '01927f00-0000-7000-8000-000000000021';
+  const T_KEEP = '01927f00-0000-7000-8000-000000000022';
+  const GHOST = '00000000-0000-0000-0000-000000000000';
+
+  async function seed() {
+    await app.db
+      .insertInto('todos')
+      .values([
+        { id: T_EXIST, description: 'To be deleted', completed: false, userId: null },
+        { id: T_KEEP, description: 'Stays', completed: false, userId: null },
+      ])
+      .execute();
+  }
+
+  it('returns 204 with empty body on valid existing id', async () => {
+    await seed();
+    const res = await app.inject({ method: 'DELETE', url: `/v1/todos/${T_EXIST}` });
+
+    expect(res.statusCode).toBe(204);
+    expect(res.body).toBe('');
+    expect(['0', undefined]).toContain(res.headers['content-length']);
+  });
+
+  it('removes the row from Postgres (direct Kysely read confirms)', async () => {
+    await seed();
+    await app.inject({ method: 'DELETE', url: `/v1/todos/${T_EXIST}` });
+
+    const row = await app.db
+      .selectFrom('todos')
+      .selectAll()
+      .where('id', '=', T_EXIST)
+      .executeTakeFirst();
+
+    expect(row).toBeUndefined();
+  });
+
+  it('excludes the deleted row from GET /v1/todos (end-to-end view)', async () => {
+    await seed();
+    await app.inject({ method: 'DELETE', url: `/v1/todos/${T_EXIST}` });
+
+    const listRes = await app.inject({ method: 'GET', url: '/v1/todos' });
+    expect(listRes.statusCode).toBe(200);
+    const body = listRes.json() as Array<{ id: string }>;
+    const ids = body.map((t) => t.id);
+    expect(ids).toContain(T_KEEP);
+    expect(ids).not.toContain(T_EXIST);
+  });
+
+  it('returns 400 on invalid path param (format: uuid violated)', async () => {
+    const res = await app.inject({ method: 'DELETE', url: '/v1/todos/not-a-uuid' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({ statusCode: 400, error: 'Bad Request' });
+  });
+
+  it('returns 404 with exact id-echoing message on non-existent id', async () => {
+    const res = await app.inject({ method: 'DELETE', url: `/v1/todos/${GHOST}` });
+
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
+      message: `Todo ${GHOST} not found`,
+    });
+  });
+
+  it('returns 404 on a second DELETE of the same id (hard-delete is permanent, no idempotency)', async () => {
+    await seed();
+    const first = await app.inject({ method: 'DELETE', url: `/v1/todos/${T_EXIST}` });
+    expect(first.statusCode).toBe(204);
+
+    const second = await app.inject({ method: 'DELETE', url: `/v1/todos/${T_EXIST}` });
+    expect(second.statusCode).toBe(404);
+    expect(second.json()).toEqual({
+      statusCode: 404,
+      error: 'Not Found',
+      message: `Todo ${T_EXIST} not found`,
+    });
+  });
+
+  it('ignores request body on DELETE (no body schema → no 400)', async () => {
+    await seed();
+    const res = await app.inject({
+      method: 'DELETE',
+      url: `/v1/todos/${T_EXIST}`,
+      payload: { x: 1 },
+    });
+
+    expect(res.statusCode).toBe(204);
+  });
+});

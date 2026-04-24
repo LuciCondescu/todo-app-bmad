@@ -64,3 +64,8 @@ export async function update(
     userId: row.userId,
   };
 }
+
+export async function remove(id: string, db: Kysely<Database>): Promise<number> {
+  const result = await db.deleteFrom('todos').where('id', '=', id).executeTakeFirstOrThrow();
+  return Number(result.numDeletedRows);
+}

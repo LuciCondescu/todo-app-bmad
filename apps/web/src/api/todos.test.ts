@@ -42,3 +42,63 @@ describe('api.todos.create', () => {
     expect((init as RequestInit).body).toBe(JSON.stringify({ description: 'Buy milk' }));
   });
 });
+
+describe('api.todos.update', () => {
+  it('calls PATCH /v1/todos/:id with { completed } body and returns the parsed Todo', async () => {
+    const serverTodo = {
+      id: 'abc',
+      description: 'x',
+      completed: true,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          ({
+            ok: true,
+            status: 200,
+            statusText: 'OK',
+            json: async () => serverTodo,
+          }) as unknown as Response,
+      ),
+    );
+
+    const result = await todos.update('abc', { completed: true });
+    expect(result).toEqual(serverTodo);
+
+    const fetchMock = globalThis.fetch as unknown as { mock: { calls: unknown[][] } };
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe(`${API_BASE}/v1/todos/abc`);
+    expect((init as RequestInit).method).toBe('PATCH');
+    expect((init as RequestInit).body).toBe(JSON.stringify({ completed: true }));
+    expect((init as RequestInit).headers).toEqual({ 'Content-Type': 'application/json' });
+  });
+});
+
+describe('api.todos.delete', () => {
+  it('calls DELETE /v1/todos/:id with no body and resolves undefined on 204', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          ({
+            ok: true,
+            status: 204,
+            statusText: 'No Content',
+          }) as unknown as Response,
+      ),
+    );
+
+    const result = await todos.delete('abc');
+    expect(result).toBeUndefined();
+
+    const fetchMock = globalThis.fetch as unknown as { mock: { calls: unknown[][] } };
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe(`${API_BASE}/v1/todos/abc`);
+    expect((init as RequestInit).method).toBe('DELETE');
+    expect((init as RequestInit).body).toBeUndefined();
+    expect((init as RequestInit).headers).toBeUndefined();
+  });
+});

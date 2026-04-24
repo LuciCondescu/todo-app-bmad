@@ -333,3 +333,56 @@ describe('todosRepo.update — behavior (SeedingDriver)', () => {
     );
   });
 });
+
+describe('todosRepo.remove — compiled DELETE shape (DummyDriver)', () => {
+  it('compiles to DELETE FROM "todos" WHERE "id" = $1 with no RETURNING clause', () => {
+    const db = createDummyDb();
+    const compiled = db.deleteFrom('todos').where('id', '=', 'some-id').compile();
+
+    expect(compiled.sql).toMatch(/delete\s+from\s+"todos"/i);
+    expect(compiled.sql).toMatch(/where\s+"id"\s+=/i);
+    expect(compiled.sql).not.toMatch(/returning/i);
+    expect(compiled.parameters).toEqual(['some-id']);
+  });
+});
+
+describe('todosRepo.remove — behavior (SeedingDriver)', () => {
+  // Kysely's DeleteResult.numDeletedRows is populated from the driver's
+  // QueryResult.numAffectedRows (bigint), not from any returned row. The
+  // SeedingDriver helper in this file models a SELECT/INSERT returning path,
+  // so remove-tests get their own thin factory that emits the DELETE-shaped
+  // QueryResult explicitly.
+  function createDeleteResultDb(numAffectedRows: bigint): Kysely<Database> {
+    const driver = new SeedingDriver({});
+    driver.acquireConnection = async () => ({
+      executeQuery: async () => ({ rows: [], numAffectedRows }),
+      // eslint-disable-next-line require-yield -- interface contract
+      streamQuery: async function* () {
+        throw new Error('unused');
+      },
+    });
+    return new Kysely<Database>({
+      dialect: {
+        createAdapter: () => new PostgresAdapter(),
+        createDriver: () => driver,
+        createIntrospector: (innerDb) => new PostgresIntrospector(innerDb),
+        createQueryCompiler: () => new PostgresQueryCompiler(),
+      },
+      plugins: [new CamelCasePlugin()],
+    });
+  }
+
+  it('returns 1 when one row is deleted (bigint → number coercion)', async () => {
+    const db = createDeleteResultDb(1n);
+    const affected = await todosRepo.remove('existing-id', db);
+    expect(affected).toBe(1);
+    expect(typeof affected).toBe('number');
+  });
+
+  it('returns 0 when no rows match (non-existent id) — does NOT throw', async () => {
+    const db = createDeleteResultDb(0n);
+    const affected = await todosRepo.remove('ghost-id', db);
+    expect(affected).toBe(0);
+    expect(typeof affected).toBe('number');
+  });
+});
