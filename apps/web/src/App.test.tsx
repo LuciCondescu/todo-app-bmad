@@ -8,14 +8,17 @@ import { ApiError } from './api/errors.js';
 vi.mock('./hooks/useTodos.js', () => ({ useTodos: vi.fn() }));
 vi.mock('./hooks/useCreateTodo.js', () => ({ useCreateTodo: vi.fn() }));
 vi.mock('./hooks/useToggleTodo.js', () => ({ useToggleTodo: vi.fn() }));
+vi.mock('./hooks/useDeleteTodo.js', () => ({ useDeleteTodo: vi.fn() }));
 
 const { useTodos } = await import('./hooks/useTodos.js');
 const { useCreateTodo } = await import('./hooks/useCreateTodo.js');
 const { useToggleTodo } = await import('./hooks/useToggleTodo.js');
+const { useDeleteTodo } = await import('./hooks/useDeleteTodo.js');
 
 const useTodosMock = vi.mocked(useTodos);
 const useCreateTodoMock = vi.mocked(useCreateTodo);
 const useToggleTodoMock = vi.mocked(useToggleTodo);
+const useDeleteTodoMock = vi.mocked(useDeleteTodo);
 
 function stubMutation(overrides: Partial<ReturnType<typeof useCreateTodo>> = {}) {
   return {
@@ -35,6 +38,15 @@ function stubToggleMutation() {
   } as unknown as ReturnType<typeof useToggleTodo>;
 }
 
+function stubDeleteMutation() {
+  return {
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    isPending: false,
+    error: null,
+  } as unknown as ReturnType<typeof useDeleteTodo>;
+}
+
 describe('<App /> mounted in the full provider tree', () => {
   beforeEach(() => {
     // Real-provider-tree test doesn't mock the hooks; reset to default stub behavior
@@ -46,6 +58,7 @@ describe('<App /> mounted in the full provider tree', () => {
     } as unknown as ReturnType<typeof useTodos>);
     useCreateTodoMock.mockReturnValue(stubMutation());
     useToggleTodoMock.mockReturnValue(stubToggleMutation());
+    useDeleteTodoMock.mockReturnValue(stubDeleteMutation());
   });
 
   it('mounts without error and renders the Header', () => {
@@ -68,6 +81,7 @@ describe('<App /> list-area render policy', () => {
     vi.clearAllMocks();
     useCreateTodoMock.mockReturnValue(stubMutation());
     useToggleTodoMock.mockReturnValue(stubToggleMutation());
+    useDeleteTodoMock.mockReturnValue(stubDeleteMutation());
   });
 
   it('renders LoadingSkeleton while useTodos is pending', () => {

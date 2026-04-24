@@ -1,24 +1,57 @@
-import { useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { Todo } from './types.js';
 import Header from './components/Header.js';
 import AddTodoInput from './components/AddTodoInput.js';
 import TodoList from './components/TodoList.js';
 import LoadingSkeleton from './components/LoadingSkeleton.js';
 import EmptyState from './components/EmptyState.js';
+import DeleteTodoModal from './components/DeleteTodoModal.js';
 import { useTodos } from './hooks/useTodos.js';
 import { useCreateTodo } from './hooks/useCreateTodo.js';
 import { useToggleTodo } from './hooks/useToggleTodo.js';
-
-// Epic 3: delete handler comes in Story 3.5.
-function noopDeleteRequest(_todo: Todo): void {}
+import { useDeleteTodo } from './hooks/useDeleteTodo.js';
 
 export default function App() {
   const { data, isPending, isError } = useTodos();
   const createMutation = useCreateTodo();
   const { mutate: toggleMutate } = useToggleTodo();
+  const { mutate: deleteMutate } = useDeleteTodo();
+
+  const [todoPendingDelete, setTodoPendingDelete] = useState<Todo | null>(null);
+  const deleteTriggerRef = useRef<HTMLElement | null>(null);
+
   const handleToggle = useCallback(
     (id: string, completed: boolean) => toggleMutate({ id, completed }),
     [toggleMutate],
+  );
+
+  const handleDeleteRequest = useCallback((todo: Todo) => {
+    // Capture the currently-focused element (the clicked delete icon) so we can
+    // restore focus on Cancel / Escape / backdrop dismissal.
+    deleteTriggerRef.current = document.activeElement as HTMLElement | null;
+    setTodoPendingDelete(todo);
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    setTodoPendingDelete(null);
+    queueMicrotask(() => {
+      // Restore focus after React unmounts the modal and the dialog's focus-trap
+      // releases. queueMicrotask suffices because React's commit phase flushes
+      // before microtasks.
+      deleteTriggerRef.current?.focus();
+    });
+  }, []);
+
+  const handleConfirmDelete = useCallback(
+    (todo: Todo) => {
+      deleteMutate(todo.id);
+      setTodoPendingDelete(null);
+      // The triggering row is optimistically removed; the delete icon is detached
+      // from the DOM, so focus falls to document.body. Epic 4 may revisit focus
+      // routing (e.g., to AddTodoInput) — acceptable per epic's "sensible landing
+      // spot" wording.
+    },
+    [deleteMutate],
   );
 
   return (
@@ -36,10 +69,15 @@ export default function App() {
             isPending,
             isError,
             onToggle: handleToggle,
-            onDeleteRequest: noopDeleteRequest,
+            onDeleteRequest: handleDeleteRequest,
           })}
         </div>
       </main>
+      <DeleteTodoModal
+        todo={todoPendingDelete}
+        onCancel={handleCancel}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

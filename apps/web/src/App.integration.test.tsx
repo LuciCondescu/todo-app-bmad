@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.js';
@@ -256,6 +256,141 @@ describe('<App /> integration — full tree with mocked fetch', () => {
       expect(screen.queryByRole('heading', { level: 2, name: 'Completed' })).toBeNull();
     });
     expect(screen.getByLabelText('Mark complete: Buy milk')).toBeInTheDocument();
+  });
+
+  it('clicking a row delete icon opens the modal with Cancel focused', async () => {
+    const user = userEvent.setup();
+    const T1 = {
+      id: '01',
+      description: 'Delete me',
+      completed: false,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    const fetchFn = vi.fn<FetchFn>(
+      async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: async () => [T1],
+        }) as unknown as Response,
+    );
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() => expect(screen.getByText('Delete me')).toBeInTheDocument());
+
+    await user.click(screen.getByLabelText('Delete todo: Delete me'));
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Delete this todo?' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus());
+  });
+
+  it('clicking Delete removes the row and closes the modal (DELETE fetch fired)', async () => {
+    const user = userEvent.setup();
+    const T1 = {
+      id: '01',
+      description: 'Delete me',
+      completed: false,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    let deleted = false;
+    const fetchFn = vi.fn<FetchFn>(async (_url, init) => {
+      if (init?.method === 'DELETE') {
+        deleted = true;
+        return {
+          ok: true,
+          status: 204,
+          statusText: 'No Content',
+        } as unknown as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => (deleted ? [] : [T1]),
+      } as unknown as Response;
+    });
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() => expect(screen.getByText('Delete me')).toBeInTheDocument());
+
+    await user.click(screen.getByLabelText('Delete todo: Delete me'));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(screen.queryByText('Delete me')).toBeNull());
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    const deleteCall = fetchFn.mock.calls.find((c) => (c[1] as RequestInit).method === 'DELETE');
+    expect(deleteCall).toBeDefined();
+    expect(deleteCall![0]).toContain('/v1/todos/01');
+  });
+
+  it('Escape (cancel event) closes the modal without firing DELETE', async () => {
+    const user = userEvent.setup();
+    const T1 = {
+      id: '01',
+      description: 'Keep me',
+      completed: false,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    const fetchFn = vi.fn<FetchFn>(
+      async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: async () => [T1],
+        }) as unknown as Response,
+    );
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() => expect(screen.getByText('Keep me')).toBeInTheDocument());
+
+    await user.click(screen.getByLabelText('Delete todo: Keep me'));
+    const dialog = screen.getByRole('dialog');
+    fireEvent(dialog, new Event('cancel', { cancelable: true, bubbles: true }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.getByText('Keep me')).toBeInTheDocument();
+
+    const deleteCalls = fetchFn.mock.calls.filter((c) => (c[1] as RequestInit).method === 'DELETE');
+    expect(deleteCalls).toHaveLength(0);
+  });
+
+  it('Cancel button closes the modal without firing DELETE', async () => {
+    const user = userEvent.setup();
+    const T1 = {
+      id: '01',
+      description: 'Keep me',
+      completed: false,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    const fetchFn = vi.fn<FetchFn>(
+      async () =>
+        ({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: async () => [T1],
+        }) as unknown as Response,
+    );
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() => expect(screen.getByText('Keep me')).toBeInTheDocument());
+
+    await user.click(screen.getByLabelText('Delete todo: Keep me'));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.getByText('Keep me')).toBeInTheDocument();
+
+    const deleteCalls = fetchFn.mock.calls.filter((c) => (c[1] as RequestInit).method === 'DELETE');
+    expect(deleteCalls).toHaveLength(0);
   });
 
   it('toggle failure reverts the row to its prior state (invalidation refetch authoritative)', async () => {
