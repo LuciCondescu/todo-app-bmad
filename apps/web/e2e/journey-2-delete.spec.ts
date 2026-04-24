@@ -26,13 +26,21 @@ function truncateTodos() {
 
 async function addTodo(page: Page, description: string): Promise<void> {
   const input = page.getByRole('textbox', { name: 'Add a todo' });
+  const postResponse = page.waitForResponse(
+    (res) => res.url().includes('/v1/todos') && res.request().method() === 'POST' && res.ok(),
+  );
   await input.fill(description);
   await input.press('Enter');
-  await expect(page.getByText(description)).toBeVisible({ timeout: 2_000 });
+  await postResponse;
+  await expect(page.getByText(description).first()).toBeVisible({ timeout: 2_000 });
 }
 
 test.describe('Journey 2 — delete with modal confirmation', () => {
-  test.beforeEach(() => truncateTodos());
+  test.beforeEach(async () => {
+    truncateTodos();
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    truncateTodos();
+  });
 
   test('clicking delete icon opens the modal with locked copy and Cancel focused', async ({
     page,
@@ -40,7 +48,7 @@ test.describe('Journey 2 — delete with modal confirmation', () => {
     await page.goto('/');
     await addTodo(page, 'Delete me');
 
-    await page.getByLabelText('Delete todo: Delete me').click();
+    await page.getByLabel('Delete todo: Delete me').click();
 
     await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Delete this todo?' })).toBeVisible();
@@ -51,7 +59,7 @@ test.describe('Journey 2 — delete with modal confirmation', () => {
   test('Escape closes the modal and the row remains', async ({ page }) => {
     await page.goto('/');
     await addTodo(page, 'Keep me');
-    await page.getByLabelText('Delete todo: Keep me').click();
+    await page.getByLabel('Delete todo: Keep me').click();
 
     await page.keyboard.press('Escape');
 
@@ -62,7 +70,7 @@ test.describe('Journey 2 — delete with modal confirmation', () => {
   test('Cancel button closes the modal and the row remains', async ({ page }) => {
     await page.goto('/');
     await addTodo(page, 'Keep me');
-    await page.getByLabelText('Delete todo: Keep me').click();
+    await page.getByLabel('Delete todo: Keep me').click();
 
     await page.getByRole('button', { name: 'Cancel' }).click();
 
@@ -73,9 +81,9 @@ test.describe('Journey 2 — delete with modal confirmation', () => {
   test('clicking Delete removes the row and closes the modal', async ({ page }) => {
     await page.goto('/');
     await addTodo(page, 'Delete me');
-    await page.getByLabelText('Delete todo: Delete me').click();
+    await page.getByLabel('Delete todo: Delete me').click();
 
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
 
     // Row disappears (optimistic removal) within 300ms.
     await expect(page.getByText('Delete me')).not.toBeVisible({ timeout: 300 });
@@ -85,8 +93,8 @@ test.describe('Journey 2 — delete with modal confirmation', () => {
   test('deleted row does not reappear after reload (persistence)', async ({ page }) => {
     await page.goto('/');
     await addTodo(page, 'Persisted delete');
-    await page.getByLabelText('Delete todo: Persisted delete').click();
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByLabel('Delete todo: Persisted delete').click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByText('Persisted delete')).not.toBeVisible({ timeout: 1_000 });
 
     await page.reload();
@@ -101,7 +109,7 @@ test.describe('Journey 2 — delete with modal confirmation', () => {
     await page.setViewportSize({ width: 320, height: 800 });
     await page.goto('/');
     await addTodo(page, 'Narrow delete');
-    await page.getByLabelText('Delete todo: Narrow delete').click();
+    await page.getByLabel('Delete todo: Narrow delete').click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
@@ -111,7 +119,7 @@ test.describe('Journey 2 — delete with modal confirmation', () => {
     expect(dialogBox!.width).toBeLessThanOrEqual(288);
 
     const cancel = page.getByRole('button', { name: 'Cancel' });
-    const del = page.getByRole('button', { name: 'Delete' });
+    const del = page.getByRole('dialog').getByRole('button', { name: 'Delete' });
     const cancelBox = await cancel.boundingBox();
     const delBox = await del.boundingBox();
     expect(cancelBox!.height).toBeGreaterThanOrEqual(44);

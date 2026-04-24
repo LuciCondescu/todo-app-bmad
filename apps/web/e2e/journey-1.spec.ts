@@ -30,12 +30,24 @@ function truncateTodos() {
 
 async function addTodo(page: Page, description: string): Promise<void> {
   const input = page.getByRole('textbox', { name: 'Add a todo' });
+  const postResponse = page.waitForResponse(
+    (res) => res.url().includes('/v1/todos') && res.request().method() === 'POST' && res.ok(),
+  );
   await input.fill(description);
   await input.press('Enter');
+  await postResponse;
+  await expect(page.getByText(description).first()).toBeVisible({ timeout: 2_000 });
 }
 
 test.describe('Journey 1 — create & view', () => {
-  test.beforeEach(() => truncateTodos());
+  test.beforeEach(async () => {
+    truncateTodos();
+    // A prior test's torn-down page may have a POST/DELETE in-flight that
+    // commits server-side after our truncate returns. Give it a short drain
+    // window, then truncate again to catch stragglers.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    truncateTodos();
+  });
 
   test('shows EmptyState on a freshly-migrated DB', async ({ page }) => {
     await page.goto('/');

@@ -26,7 +26,11 @@ function truncateTodos() {
 }
 
 test.describe('Journey 3 — create failure', () => {
-  test.beforeEach(() => truncateTodos());
+  test.beforeEach(async () => {
+    truncateTodos();
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    truncateTodos();
+  });
 
   test('first POST fails → inline error + preserved input + Retry succeeds → row appears, input clears + refocuses, error disappears', async ({
     page,
@@ -66,7 +70,6 @@ test.describe('Journey 3 — create failure', () => {
     await expect(alert).toHaveText(/Couldn't save\. Check your connection\./);
     await expect(alert).not.toHaveText(/boom/);
     await expect(input).toHaveValue('Buy milk');
-    await expect(page.getByText('Buy milk').first()).toBeVisible(); // input itself still shows it
     // No <li> with the todo description exists yet.
     await expect(page.locator('li', { hasText: 'Buy milk' })).toHaveCount(0);
 
