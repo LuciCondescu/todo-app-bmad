@@ -149,21 +149,25 @@ describe('<App /> list-area render policy', () => {
     expect(root).toHaveClass('max-w-xl', 'mx-auto', 'px-4', 'pt-8', 'lg:pt-16');
   });
 
-  it('AddTodoInput reflects create mutation state: disabled + error message', () => {
+  it('AddTodoInput reflects create mutation state: disabled + locked-copy error (raw server text never leaks)', () => {
     useTodosMock.mockReturnValue({
       isPending: false,
       data: [],
       isError: false,
     } as unknown as ReturnType<typeof useTodos>);
     useCreateTodoMock.mockReturnValue(
-      stubMutation({ isPending: true, error: new ApiError(400, 'too long') } as unknown as Partial<
-        ReturnType<typeof useCreateTodo>
-      >),
+      stubMutation({
+        isPending: true,
+        isError: true,
+        error: new ApiError(400, 'too long'),
+      } as unknown as Partial<ReturnType<typeof useCreateTodo>>),
     );
     render(<App />);
     const addButton = screen.getByRole('button', { name: 'Add' }) as HTMLButtonElement;
     expect(addButton).toBeDisabled();
     const alert = screen.getByRole('alert');
-    expect(alert).toHaveTextContent('too long');
+    // Story 4.2 AC5: raw server text ("too long") must never appear; only the locked copy.
+    expect(alert).toHaveTextContent("Couldn't save. Check your connection.");
+    expect(alert).not.toHaveTextContent('too long');
   });
 });

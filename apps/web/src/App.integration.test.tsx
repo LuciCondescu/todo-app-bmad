@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.js';
@@ -128,7 +128,7 @@ describe('<App /> integration — full tree with mocked fetch', () => {
     );
   });
 
-  it('create failure: error region shown, typed text preserved, no new row', async () => {
+  it('create failure: locked-copy error shown, Retry button present, typed text preserved, no new row', async () => {
     const user = userEvent.setup();
     const fetchFn = vi.fn<FetchFn>(async (_url, init) => {
       if (init?.method === 'POST') {
@@ -157,11 +157,156 @@ describe('<App /> integration — full tree with mocked fetch', () => {
     await user.type(input, 'Buy milk{Enter}');
     await waitFor(() => {
       const alert = screen.getByRole('alert');
-      expect(alert).toHaveTextContent('boom');
+      expect(alert).toHaveTextContent("Couldn't save. Check your connection.");
     });
+    const alert = screen.getByRole('alert');
+    // AC5: the raw server envelope message must never surface in the DOM.
+    expect(alert).not.toHaveTextContent('boom');
+    // Retry button is present inside the alert region.
+    expect(within(alert).getByRole('button', { name: /retry/i })).toBeVisible();
     expect(input.value).toBe('Buy milk');
     // The EmptyState copy is still present — no new row appeared in the list.
     expect(screen.getByText('No todos yet.')).toBeInTheDocument();
+  });
+
+  it('create failure → Retry succeeds → row appears, input clears + refocuses, error unmounts', async () => {
+    const user = userEvent.setup();
+    const newTodo = {
+      id: '01',
+      description: 'Buy milk',
+      completed: false,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    let postCount = 0;
+    let firstPostSettled = false;
+    const fetchFn = vi.fn<FetchFn>(async (_url, init) => {
+      if (init?.method === 'POST') {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        postCount += 1;
+        if (postCount === 1) {
+          firstPostSettled = true;
+          return {
+            ok: false,
+            status: 500,
+            statusText: 'Internal Server Error',
+            json: async () => ({
+              statusCode: 500,
+              error: 'Internal Server Error',
+              message: 'boom',
+            }),
+          } as unknown as Response;
+        }
+        return {
+          ok: true,
+          status: 201,
+          statusText: 'Created',
+          json: async () => newTodo,
+        } as unknown as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => (firstPostSettled && postCount >= 2 ? [newTodo] : []),
+      } as unknown as Response;
+    });
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() => expect(screen.getByText('No todos yet.')).toBeInTheDocument());
+    const input = screen.getByRole('textbox', { name: 'Add a todo' }) as HTMLInputElement;
+    await user.type(input, 'Buy milk{Enter}');
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent("Couldn't save. Check your connection.");
+    });
+    // Retry the same attempt.
+    await user.click(within(screen.getByRole('alert')).getByRole('button', { name: /retry/i }));
+    await waitFor(
+      () => {
+        expect(screen.getByText('Buy milk')).toBeInTheDocument();
+        expect(input.value).toBe('');
+        expect(input).toHaveFocus();
+        expect(screen.queryByRole('alert')).toBeNull();
+      },
+      { timeout: 3000 },
+    );
+    // Exactly two POSTs fired, second one with the same body.
+    const postCalls = fetchFn.mock.calls.filter((c) => (c[1] as RequestInit).method === 'POST');
+    expect(postCalls).toHaveLength(2);
+    expect(JSON.parse((postCalls[1][1] as RequestInit).body as string)).toEqual({
+      description: 'Buy milk',
+    });
+  });
+
+  it('create failure → fresh submit of a different description succeeds, clears error + lastCreateAttempt', async () => {
+    const user = userEvent.setup();
+    const readBook = {
+      id: '02',
+      description: 'Read book',
+      completed: false,
+      createdAt: '2026-04-20T10:00:01.000Z',
+      userId: null,
+    };
+    let postCount = 0;
+    let freshSubmitLanded = false;
+    const fetchFn = vi.fn<FetchFn>(async (_url, init) => {
+      if (init?.method === 'POST') {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        postCount += 1;
+        if (postCount === 1) {
+          return {
+            ok: false,
+            status: 500,
+            statusText: 'Internal Server Error',
+            json: async () => ({
+              statusCode: 500,
+              error: 'Internal Server Error',
+              message: 'boom',
+            }),
+          } as unknown as Response;
+        }
+        freshSubmitLanded = true;
+        return {
+          ok: true,
+          status: 201,
+          statusText: 'Created',
+          json: async () => readBook,
+        } as unknown as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => (freshSubmitLanded ? [readBook] : []),
+      } as unknown as Response;
+    });
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() => expect(screen.getByText('No todos yet.')).toBeInTheDocument());
+    const input = screen.getByRole('textbox', { name: 'Add a todo' }) as HTMLInputElement;
+    await user.type(input, 'Buy milk{Enter}');
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent("Couldn't save. Check your connection.");
+    });
+    expect(input.value).toBe('Buy milk');
+
+    // Clear the input and type a different description.
+    await user.clear(input);
+    await user.type(input, 'Read book{Enter}');
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('Read book')).toBeInTheDocument();
+        expect(input.value).toBe('');
+        expect(screen.queryByRole('alert')).toBeNull();
+      },
+      { timeout: 3000 },
+    );
+    const postCalls = fetchFn.mock.calls.filter((c) => (c[1] as RequestInit).method === 'POST');
+    expect(postCalls).toHaveLength(2);
+    expect(JSON.parse((postCalls[1][1] as RequestInit).body as string)).toEqual({
+      description: 'Read book',
+    });
   });
 
   it('toggle active→completed renders optimistically and persists after refetch', async () => {

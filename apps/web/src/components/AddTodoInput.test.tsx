@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AddTodoInput from './AddTodoInput.js';
 
@@ -124,6 +124,42 @@ describe('<AddTodoInput />', () => {
     ['empty string', ''],
   ])('does NOT render error region for error=%s', (_label, value) => {
     renderComponent({ error: value });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('renders a Retry button inside the alert region when error + onRetry are both provided', () => {
+    renderComponent({ error: "Couldn't save. Check your connection.", onRetry: vi.fn() });
+    const alert = screen.getByRole('alert');
+    expect(within(alert).getByRole('button', { name: /retry/i })).toBeInTheDocument();
+  });
+
+  it('clicking Retry inside the alert region calls onRetry exactly once', async () => {
+    const user = userEvent.setup();
+    const onRetry = vi.fn();
+    renderComponent({ error: "Couldn't save. Check your connection.", onRetry });
+    const retryBtn = within(screen.getByRole('alert')).getByRole('button', { name: /retry/i });
+    await user.click(retryBtn);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('isRetrying=true disables Retry with aria-busy="true" (delegated to InlineError)', () => {
+    renderComponent({
+      error: "Couldn't save. Check your connection.",
+      onRetry: vi.fn(),
+      isRetrying: true,
+    });
+    const retryBtn = within(screen.getByRole('alert')).getByRole('button', { name: /retry/i });
+    expect(retryBtn).toBeDisabled();
+    expect(retryBtn).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('alert region unmounts when error transitions from a non-empty string → null', () => {
+    const onSubmit = vi.fn();
+    const { rerender } = render(
+      <AddTodoInput onSubmit={onSubmit} error="Couldn't save. Check your connection." />,
+    );
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    rerender(<AddTodoInput onSubmit={onSubmit} error={null} />);
     expect(screen.queryByRole('alert')).toBeNull();
   });
 });

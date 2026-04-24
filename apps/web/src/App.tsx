@@ -18,7 +18,26 @@ export default function App() {
   const { mutate: deleteMutate } = useDeleteTodo();
 
   const [todoPendingDelete, setTodoPendingDelete] = useState<Todo | null>(null);
+  const [lastCreateAttempt, setLastCreateAttempt] = useState<string | null>(null);
   const deleteTriggerRef = useRef<HTMLElement | null>(null);
+
+  const handleCreate = useCallback(
+    (description: string) => {
+      setLastCreateAttempt(description);
+      createMutation.mutate(description, {
+        onSuccess: () => setLastCreateAttempt(null),
+      });
+    },
+    [createMutation],
+  );
+
+  const handleRetry = useCallback(() => {
+    if (lastCreateAttempt !== null) {
+      createMutation.mutate(lastCreateAttempt, {
+        onSuccess: () => setLastCreateAttempt(null),
+      });
+    }
+  }, [createMutation, lastCreateAttempt]);
 
   const handleToggle = useCallback(
     (id: string, completed: boolean) => toggleMutate({ id, completed }),
@@ -59,9 +78,11 @@ export default function App() {
       <Header />
       <main>
         <AddTodoInput
-          onSubmit={createMutation.mutate}
+          onSubmit={handleCreate}
           disabled={createMutation.isPending}
-          error={createMutation.error?.message ?? null}
+          error={createMutation.isError ? "Couldn't save. Check your connection." : null}
+          onRetry={createMutation.isError && lastCreateAttempt !== null ? handleRetry : undefined}
+          isRetrying={createMutation.isPending}
         />
         <div className="mt-6">
           {renderListArea({
