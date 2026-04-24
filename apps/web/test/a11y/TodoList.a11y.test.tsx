@@ -30,4 +30,14 @@ describe('<TodoList /> accessibility', () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it('mixed active + completed todos — zero axe-core violations (FR-006 / NFR-007 contrast)', async () => {
+    const todos = [
+      makeTodo({ description: 'Active todo' }),
+      makeTodo({ description: 'Completed todo', completed: true }),
+    ];
+    const { container } = render(<TodoList todos={todos} onToggle={noop} onDeleteRequest={noop} />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
 });

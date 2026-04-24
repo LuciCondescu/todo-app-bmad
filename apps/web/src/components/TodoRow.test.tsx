@@ -104,11 +104,30 @@ describe('<TodoRow />', () => {
     expect(typeof asMemo.compare).not.toBe('function');
   });
 
-  it('completed=true does NOT add line-through or opacity-60 classes (deferred to Story 3.4)', () => {
+  it('applies line-through and opacity-60 classes to the description when completed=true', () => {
     const { container } = renderRow({ todo: { completed: true } as Todo });
     const desc = container.querySelector('span.flex-1');
     expect(desc).not.toBeNull();
+    expect(desc).toHaveClass('line-through');
+    expect(desc).toHaveClass('opacity-60');
+  });
+
+  it('does NOT apply line-through or opacity-60 when completed=false', () => {
+    const { container } = renderRow({ todo: { completed: false } as Todo });
+    const desc = container.querySelector('span.flex-1');
     expect(desc).not.toHaveClass('line-through');
     expect(desc).not.toHaveClass('opacity-60');
+  });
+
+  it('applies transition utility unconditionally (for symmetric in-and-out animation)', () => {
+    const { container: activeContainer } = renderRow({ todo: { completed: false } as Todo });
+    const activeDesc = activeContainer.querySelector('span.flex-1');
+    expect(activeDesc).toHaveClass('transition-[opacity,text-decoration-color]');
+    expect(activeDesc).toHaveClass('duration-200');
+    expect(activeDesc).toHaveClass('ease-out');
+
+    const { container: completedContainer } = renderRow({ todo: { completed: true } as Todo });
+    const completedDesc = completedContainer.querySelector('span.flex-1');
+    expect(completedDesc).toHaveClass('transition-[opacity,text-decoration-color]');
   });
 });

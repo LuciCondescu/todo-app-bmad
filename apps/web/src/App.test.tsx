@@ -7,12 +7,15 @@ import { ApiError } from './api/errors.js';
 
 vi.mock('./hooks/useTodos.js', () => ({ useTodos: vi.fn() }));
 vi.mock('./hooks/useCreateTodo.js', () => ({ useCreateTodo: vi.fn() }));
+vi.mock('./hooks/useToggleTodo.js', () => ({ useToggleTodo: vi.fn() }));
 
 const { useTodos } = await import('./hooks/useTodos.js');
 const { useCreateTodo } = await import('./hooks/useCreateTodo.js');
+const { useToggleTodo } = await import('./hooks/useToggleTodo.js');
 
 const useTodosMock = vi.mocked(useTodos);
 const useCreateTodoMock = vi.mocked(useCreateTodo);
+const useToggleTodoMock = vi.mocked(useToggleTodo);
 
 function stubMutation(overrides: Partial<ReturnType<typeof useCreateTodo>> = {}) {
   return {
@@ -21,6 +24,15 @@ function stubMutation(overrides: Partial<ReturnType<typeof useCreateTodo>> = {})
     error: null,
     ...overrides,
   } as unknown as ReturnType<typeof useCreateTodo>;
+}
+
+function stubToggleMutation() {
+  return {
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    isPending: false,
+    error: null,
+  } as unknown as ReturnType<typeof useToggleTodo>;
 }
 
 describe('<App /> mounted in the full provider tree', () => {
@@ -33,6 +45,7 @@ describe('<App /> mounted in the full provider tree', () => {
       isError: false,
     } as unknown as ReturnType<typeof useTodos>);
     useCreateTodoMock.mockReturnValue(stubMutation());
+    useToggleTodoMock.mockReturnValue(stubToggleMutation());
   });
 
   it('mounts without error and renders the Header', () => {
@@ -54,6 +67,7 @@ describe('<App /> list-area render policy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useCreateTodoMock.mockReturnValue(stubMutation());
+    useToggleTodoMock.mockReturnValue(stubToggleMutation());
   });
 
   it('renders LoadingSkeleton while useTodos is pending', () => {

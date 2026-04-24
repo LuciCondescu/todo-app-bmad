@@ -8,6 +8,9 @@
   --color-border: #e5e5e5;
   --color-accent: #2563eb;
   --color-danger: #dc2626;
+  --color-completed-fg: rgb(
+    26 26 26 / 0.6
+  ); /* #1A1A1A at 60% opacity over #FAFAFA → effective ≥4.5:1 (WCAG AA). FR-006 / NFR-007. */
 
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,

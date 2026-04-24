@@ -18,14 +18,15 @@ function makeTodo(overrides: Partial<Todo> = {}): Todo {
 const noop = () => {};
 
 describe('<TodoList />', () => {
-  it('renders a <ul> with one <li> per active todo', () => {
+  it('renders a single Active <ul> with one <li> per active todo (no Completed section if all active)', () => {
     const todos = [makeTodo({ description: 'A' }), makeTodo({ description: 'B' })];
     const { container } = render(<TodoList todos={todos} onToggle={noop} onDeleteRequest={noop} />);
     expect(container.querySelectorAll('ul')).toHaveLength(1);
     expect(container.querySelectorAll('li')).toHaveLength(2);
+    expect(screen.queryByRole('heading', { level: 2, name: 'Completed' })).toBeNull();
   });
 
-  it('filters out completed todos, rendering only active ones', () => {
+  it('splits mixed todos into Active <ul> and Completed <ul> sections (received order)', () => {
     const todos = [
       makeTodo({ description: 'Active A', completed: false }),
       makeTodo({ description: 'Done X', completed: true }),
@@ -33,11 +34,22 @@ describe('<TodoList />', () => {
       makeTodo({ description: 'Done Y', completed: true }),
     ];
     const { container } = render(<TodoList todos={todos} onToggle={noop} onDeleteRequest={noop} />);
-    expect(container.querySelectorAll('li')).toHaveLength(2);
-    expect(screen.getByText('Active A')).toBeInTheDocument();
-    expect(screen.getByText('Active B')).toBeInTheDocument();
-    expect(screen.queryByText('Done X')).toBeNull();
-    expect(screen.queryByText('Done Y')).toBeNull();
+
+    const lists = container.querySelectorAll('ul');
+    expect(lists).toHaveLength(2);
+
+    // Active <ul> (first) has 2 items in received order.
+    const activeItems = Array.from(lists[0]!.querySelectorAll('li'));
+    expect(activeItems[0]?.textContent).toContain('Active A');
+    expect(activeItems[1]?.textContent).toContain('Active B');
+
+    // Completed <ul> (second) has 2 items in received order.
+    const completedItems = Array.from(lists[1]!.querySelectorAll('li'));
+    expect(completedItems[0]?.textContent).toContain('Done X');
+    expect(completedItems[1]?.textContent).toContain('Done Y');
+
+    // Completed heading present.
+    expect(screen.getByRole('heading', { level: 2, name: 'Completed' })).toBeInTheDocument();
   });
 
   it('preserves the received order of active todos', () => {
@@ -74,15 +86,29 @@ describe('<TodoList />', () => {
     expect(container.querySelectorAll('li')).toHaveLength(0);
   });
 
-  it('all-completed list renders an empty <ul> (no Completed section — Story 3.4)', () => {
+  it('all-completed list renders the Completed section with its label', () => {
     const todos = [
       makeTodo({ description: 'Done X', completed: true }),
       makeTodo({ description: 'Done Y', completed: true }),
     ];
     const { container } = render(<TodoList todos={todos} onToggle={noop} onDeleteRequest={noop} />);
-    expect(container.querySelectorAll('ul')).toHaveLength(1);
-    expect(container.querySelectorAll('li')).toHaveLength(0);
-    expect(screen.queryByText('Done X')).toBeNull();
+    expect(container.querySelectorAll('ul')).toHaveLength(2); // empty Active + non-empty Completed
+    expect(screen.getByRole('heading', { level: 2, name: 'Completed' })).toBeInTheDocument();
+    expect(screen.getByText('Done X')).toBeInTheDocument();
+    expect(screen.getByText('Done Y')).toBeInTheDocument();
+  });
+
+  it('assigns rows to sections by completed flag with stable keys (no cross-section leak)', () => {
+    const todos = [
+      makeTodo({ id: 'aaa', description: 'Active', completed: false }),
+      makeTodo({ id: 'bbb', description: 'Done', completed: true }),
+    ];
+    const { container } = render(<TodoList todos={todos} onToggle={noop} onDeleteRequest={noop} />);
+    const lists = container.querySelectorAll('ul');
+    expect(lists[0]!.textContent).toContain('Active');
+    expect(lists[0]!.textContent).not.toContain('Done');
+    expect(lists[1]!.textContent).toContain('Done');
+    expect(lists[1]!.textContent).not.toContain('Active');
   });
 
   it('forwards onToggle from TodoList → TodoRow with (id, desired) correctly', async () => {

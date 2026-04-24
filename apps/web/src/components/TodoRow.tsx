@@ -27,7 +27,13 @@ function TodoRowImpl({ todo, onToggle, onDeleteRequest, isMutating = false }: To
           onChange={(e) => onToggle(todo.id, e.target.checked)}
         />
       </span>
-      <span className="flex-1 text-base break-words">{todo.description}</span>
+      <span
+        className={`flex-1 text-base break-words transition-[opacity,text-decoration-color] duration-200 ease-out${
+          todo.completed ? ' line-through opacity-60' : ''
+        }`}
+      >
+        {todo.description}
+      </span>
       <button
         type="button"
         disabled={isMutating}

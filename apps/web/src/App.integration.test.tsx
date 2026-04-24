@@ -163,4 +163,141 @@ describe('<App /> integration — full tree with mocked fetch', () => {
     // The EmptyState copy is still present — no new row appeared in the list.
     expect(screen.getByText('No todos yet.')).toBeInTheDocument();
   });
+
+  it('toggle active→completed renders optimistically and persists after refetch', async () => {
+    const user = userEvent.setup();
+    const T1 = {
+      id: '01',
+      description: 'Buy milk',
+      completed: false,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    const T2 = {
+      id: '02',
+      description: 'Read book',
+      completed: false,
+      createdAt: '2026-04-20T10:00:01.000Z',
+      userId: null,
+    };
+    let patchResolved = false;
+    const fetchFn = vi.fn<FetchFn>(async (_url, init) => {
+      if (init?.method === 'PATCH') {
+        patchResolved = true;
+        return {
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: async () => ({ ...T1, completed: true }),
+        } as unknown as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => (patchResolved ? [{ ...T1, completed: true }, T2] : [T1, T2]),
+      } as unknown as Response;
+    });
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() => expect(screen.getByText('Buy milk')).toBeInTheDocument());
+
+    const firstCheckbox = screen.getByLabelText('Mark complete: Buy milk');
+    await user.click(firstCheckbox);
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2, name: 'Completed' })).toBeInTheDocument(),
+    );
+    expect(screen.getByLabelText('Mark incomplete: Buy milk')).toBeInTheDocument();
+
+    const patchCall = fetchFn.mock.calls.find((c) => (c[1] as RequestInit).method === 'PATCH');
+    expect(patchCall).toBeDefined();
+    expect(patchCall![0]).toContain('/v1/todos/01');
+    expect((patchCall![1] as RequestInit).body).toBe(JSON.stringify({ completed: true }));
+  });
+
+  it('toggle completed→active moves the row back to the Active section', async () => {
+    const user = userEvent.setup();
+    const T1 = {
+      id: '01',
+      description: 'Buy milk',
+      completed: true,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    let patchResolved = false;
+    const fetchFn = vi.fn<FetchFn>(async (_url, init) => {
+      if (init?.method === 'PATCH') {
+        patchResolved = true;
+        return {
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: async () => ({ ...T1, completed: false }),
+        } as unknown as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => (patchResolved ? [{ ...T1, completed: false }] : [T1]),
+      } as unknown as Response;
+    });
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 2, name: 'Completed' })).toBeInTheDocument(),
+    );
+
+    const checkbox = screen.getByLabelText('Mark incomplete: Buy milk');
+    await user.click(checkbox);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { level: 2, name: 'Completed' })).toBeNull();
+    });
+    expect(screen.getByLabelText('Mark complete: Buy milk')).toBeInTheDocument();
+  });
+
+  it('toggle failure reverts the row to its prior state (invalidation refetch authoritative)', async () => {
+    const user = userEvent.setup();
+    const T1 = {
+      id: '01',
+      description: 'Buy milk',
+      completed: false,
+      createdAt: '2026-04-20T10:00:00.000Z',
+      userId: null,
+    };
+    const fetchFn = vi.fn<FetchFn>(async (_url, init) => {
+      if (init?.method === 'PATCH') {
+        return {
+          ok: false,
+          status: 500,
+          statusText: 'Internal Server Error',
+          json: async () => ({
+            statusCode: 500,
+            error: 'Internal Server Error',
+            message: 'boom',
+          }),
+        } as unknown as Response;
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => [T1],
+      } as unknown as Response;
+    });
+    vi.stubGlobal('fetch', fetchFn);
+    mountApp();
+    await waitFor(() => expect(screen.getByText('Buy milk')).toBeInTheDocument());
+
+    const checkbox = screen.getByLabelText('Mark complete: Buy milk');
+    await user.click(checkbox);
+
+    // After settle (error + invalidation refetch), the row is back in Active.
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { level: 2, name: 'Completed' })).toBeNull();
+    });
+    expect(screen.getByLabelText('Mark complete: Buy milk')).toBeInTheDocument();
+  });
 });

@@ -1,5 +1,5 @@
 # generated: 2026-04-18
-# last_updated: 2026-04-24 (Story 3.3 implemented → review; web suite 100 → 116 tests; Story 3.4 ready-for-dev; 3.1 and 3.2 still in review)
+# last_updated: 2026-04-24 (Story 3.4 implemented → review; web suite 100 → 123 tests; Story 3.5 ready-for-dev; 3.1/3.2/3.3 still in review)
 # Note: Story 2.1 → review (59 tests pass; typecheck/lint/format clean; contract test against real Postgres)
 # project: todo-app
 # project_key: NOKEY
@@ -68,8 +68,8 @@ development_status:
   3-1-updatetodoinput-schema-todosrepo-update-patch-v1-todos-id: review
   3-2-todosrepo-remove-delete-v1-todos-id: review
   3-3-useoptimistictodomutation-factory-usetoggletodo-usedeletetodo-hooks: review
-  3-4-todorow-completed-state-todolist-completed-section-app-tsx-sectioning: ready-for-dev
-  3-5-deletetodomodal-component-app-tsx-delete-flow-journey-2-complete: backlog
+  3-4-todorow-completed-state-todolist-completed-section-app-tsx-sectioning: review
+  3-5-deletetodomodal-component-app-tsx-delete-flow-journey-2-complete: ready-for-dev
   epic-3-retrospective: optional
 
   # Epic 4: Failure-Proof User Experience
