@@ -7,6 +7,22 @@
     "./schemas/todo": {
       "types": "./src/schemas/todo.ts",
       "default": "./src/schemas/todo.ts"
+    },
+    "./app": {
+      "types": "./src/app.ts",
+      "default": "./src/app.ts"
+    },
+    "./db/schema": {
+      "types": "./src/db/schema.ts",
+      "default": "./src/db/schema.ts"
+    },
+    "./repositories/todosRepo": {
+      "types": "./src/repositories/todosRepo.ts",
+      "default": "./src/repositories/todosRepo.ts"
+    },
+    "./test-setup": {
+      "types": "./test/setup.ts",
+      "default": "./test/setup.ts"
     }
   },
   "scripts": {
