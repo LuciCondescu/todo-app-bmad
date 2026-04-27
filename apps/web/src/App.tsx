@@ -11,14 +11,19 @@ import { useCreateTodo } from './hooks/useCreateTodo.js';
 import { useToggleTodo } from './hooks/useToggleTodo.js';
 import { useDeleteTodo } from './hooks/useDeleteTodo.js';
 
+type ToggleAttempt = { desiredCompleted: boolean; message: string };
+
 export default function App() {
   const { data, isPending, isError } = useTodos();
   const createMutation = useCreateTodo();
   const { mutate: toggleMutate } = useToggleTodo();
-  const { mutate: deleteMutate } = useDeleteTodo();
+  const deleteMutation = useDeleteTodo();
 
   const [todoPendingDelete, setTodoPendingDelete] = useState<Todo | null>(null);
   const [lastCreateAttempt, setLastCreateAttempt] = useState<string | null>(null);
+  const [toggleErrors, setToggleErrors] = useState<Map<string, ToggleAttempt>>(() => new Map());
+  const [retryingIds, setRetryingIds] = useState<Set<string>>(() => new Set());
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const deleteTriggerRef = useRef<HTMLElement | null>(null);
 
   const handleCreate = useCallback(
@@ -40,8 +45,54 @@ export default function App() {
   }, [createMutation, lastCreateAttempt]);
 
   const handleToggle = useCallback(
-    (id: string, completed: boolean) => toggleMutate({ id, completed }),
+    (id: string, completed: boolean) => {
+      toggleMutate(
+        { id, completed },
+        {
+          onSuccess: () => {
+            setToggleErrors((prev) => {
+              if (!prev.has(id)) return prev;
+              const next = new Map(prev);
+              next.delete(id);
+              return next;
+            });
+            setRetryingIds((prev) => {
+              if (!prev.has(id)) return prev;
+              const next = new Set(prev);
+              next.delete(id);
+              return next;
+            });
+          },
+          onError: () => {
+            setToggleErrors((prev) => {
+              const next = new Map(prev);
+              next.set(id, {
+                desiredCompleted: completed,
+                message: "Couldn't save. Check your connection.",
+              });
+              return next;
+            });
+            setRetryingIds((prev) => {
+              if (!prev.has(id)) return prev;
+              const next = new Set(prev);
+              next.delete(id);
+              return next;
+            });
+          },
+        },
+      );
+    },
     [toggleMutate],
+  );
+
+  const handleToggleRetry = useCallback(
+    (id: string) => {
+      const attempt = toggleErrors.get(id);
+      if (!attempt) return;
+      setRetryingIds((prev) => new Set(prev).add(id));
+      handleToggle(id, attempt.desiredCompleted);
+    },
+    [toggleErrors, handleToggle],
   );
 
   const handleDeleteRequest = useCallback((todo: Todo) => {
@@ -53,6 +104,7 @@ export default function App() {
 
   const handleCancel = useCallback(() => {
     setTodoPendingDelete(null);
+    setDeleteError(null);
     queueMicrotask(() => {
       // Restore focus after React unmounts the modal and the dialog's focus-trap
       // releases. queueMicrotask suffices because React's commit phase flushes
@@ -63,14 +115,24 @@ export default function App() {
 
   const handleConfirmDelete = useCallback(
     (todo: Todo) => {
-      deleteMutate(todo.id);
-      setTodoPendingDelete(null);
-      // The triggering row is optimistically removed; the delete icon is detached
-      // from the DOM, so focus falls to document.body. Epic 4 may revisit focus
-      // routing (e.g., to AddTodoInput) — acceptable per epic's "sensible landing
-      // spot" wording.
+      deleteMutation.mutate(todo.id, {
+        onSuccess: () => {
+          setTodoPendingDelete(null);
+          setDeleteError(null);
+          queueMicrotask(() => {
+            // Mirror handleCancel's focus-restoration. The originating delete icon is
+            // detached from the DOM by the optimistic filter, so the browser falls
+            // back to <body>; the explicit attempt is still load-bearing because
+            // this entry point now resolves asynchronously after the mutation settles.
+            deleteTriggerRef.current?.focus();
+          });
+        },
+        onError: () => {
+          setDeleteError("Couldn't delete. Check your connection.");
+        },
+      });
     },
-    [deleteMutate],
+    [deleteMutation],
   );
 
   return (
@@ -91,6 +153,9 @@ export default function App() {
             isError,
             onToggle: handleToggle,
             onDeleteRequest: handleDeleteRequest,
+            toggleErrors,
+            onToggleRetry: handleToggleRetry,
+            retryingIds,
           })}
         </div>
       </main>
@@ -98,6 +163,8 @@ export default function App() {
         todo={todoPendingDelete}
         onCancel={handleCancel}
         onConfirm={handleConfirmDelete}
+        error={deleteError}
+        isDeleting={deleteMutation.isPending}
       />
     </div>
   );
@@ -109,12 +176,18 @@ function renderListArea({
   isError,
   onToggle,
   onDeleteRequest,
+  toggleErrors,
+  onToggleRetry,
+  retryingIds,
 }: {
   data: Todo[] | undefined;
   isPending: boolean;
   isError: boolean;
   onToggle: (id: string, completed: boolean) => void;
   onDeleteRequest: (todo: Todo) => void;
+  toggleErrors: Map<string, ToggleAttempt>;
+  onToggleRetry: (id: string) => void;
+  retryingIds: Set<string>;
 }) {
   if (isPending) return <LoadingSkeleton />;
   if (isError) {
@@ -130,5 +203,14 @@ function renderListArea({
     );
   }
   if (!data || data.length === 0) return <EmptyState />;
-  return <TodoList todos={data} onToggle={onToggle} onDeleteRequest={onDeleteRequest} />;
+  return (
+    <TodoList
+      todos={data}
+      onToggle={onToggle}
+      onDeleteRequest={onDeleteRequest}
+      toggleErrors={toggleErrors}
+      onToggleRetry={onToggleRetry}
+      retryingIds={retryingIds}
+    />
+  );
 }

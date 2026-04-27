@@ -1,16 +1,21 @@
 import { useEffect, useId, useRef, type ReactElement } from 'react';
 import type { Todo } from '../types.js';
+import InlineError from './InlineError.js';
 
 interface DeleteTodoModalProps {
   todo: Todo | null;
   onCancel: () => void;
   onConfirm: (todo: Todo) => void;
+  error?: string | null;
+  isDeleting?: boolean;
 }
 
 export default function DeleteTodoModal({
   todo,
   onCancel,
   onConfirm,
+  error = null,
+  isDeleting = false,
 }: DeleteTodoModalProps): ReactElement | null {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelBtnRef = useRef<HTMLButtonElement>(null);
@@ -48,6 +53,8 @@ export default function DeleteTodoModal({
     onCancel();
   };
 
+  const confirmLabel = error ? 'Retry' : 'Delete';
+
   return (
     // jsx-a11y treats <dialog> as non-interactive, but per the HTML spec (and
     // when opened via .showModal()) it IS an interactive landmark. Keyboard
@@ -65,9 +72,15 @@ export default function DeleteTodoModal({
       <h2 id={titleId} className="text-lg font-semibold text-[var(--color-fg)]">
         Delete this todo?
       </h2>
-      <p id={bodyId} className="mt-2 text-base text-[var(--color-fg)]">
-        This cannot be undone.
-      </p>
+      {error ? (
+        <div id={bodyId} className="mt-2">
+          <InlineError message={error} />
+        </div>
+      ) : (
+        <p id={bodyId} className="mt-2 text-base text-[var(--color-fg)]">
+          This cannot be undone.
+        </p>
+      )}
       <div className="mt-6 flex gap-3 justify-end">
         <button
           ref={cancelBtnRef}
@@ -80,9 +93,11 @@ export default function DeleteTodoModal({
         <button
           type="button"
           onClick={() => onConfirm(todo)}
-          className="min-h-[44px] px-4 rounded-md bg-[var(--color-danger)] text-white text-sm font-medium"
+          disabled={isDeleting}
+          aria-busy={isDeleting ? 'true' : undefined}
+          className="min-h-[44px] px-4 rounded-md bg-[var(--color-danger)] text-white text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Delete
+          {confirmLabel}
         </button>
       </div>
     </dialog>

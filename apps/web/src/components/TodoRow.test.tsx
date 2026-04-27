@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TodoRow from './TodoRow.js';
 import type { Todo } from '../types.js';
@@ -16,6 +16,9 @@ function renderRow(overrides: Partial<React.ComponentProps<typeof TodoRow>> = {}
   const onToggle = overrides.onToggle ?? vi.fn();
   const onDeleteRequest = overrides.onDeleteRequest ?? vi.fn();
   const isMutating = overrides.isMutating;
+  const error = overrides.error;
+  const onRetry = overrides.onRetry;
+  const isRetrying = overrides.isRetrying;
   const result = render(
     <ul>
       <TodoRow
@@ -23,18 +26,25 @@ function renderRow(overrides: Partial<React.ComponentProps<typeof TodoRow>> = {}
         onToggle={onToggle}
         onDeleteRequest={onDeleteRequest}
         isMutating={isMutating}
+        error={error}
+        onRetry={onRetry}
+        isRetrying={isRetrying}
       />
     </ul>,
   );
-  return { ...result, todo, onToggle, onDeleteRequest };
+  return { ...result, todo, onToggle, onDeleteRequest, onRetry };
 }
 
 describe('<TodoRow />', () => {
-  it('renders <li> root with flex row layout and border', () => {
+  // Layout refactor: <li> is the container; flex-row sits on an inner wrapper so InlineError can stack below.
+  it('renders <li> as flex-col container with border, and inner <div> with flex-row layout', () => {
     const { container } = renderRow();
     const li = container.querySelector('li');
     expect(li).not.toBeNull();
-    expect(li).toHaveClass('flex', 'items-center', 'gap-3', 'py-3', 'border-b');
+    expect(li).toHaveClass('flex', 'flex-col', 'border-b');
+    const innerRow = li!.querySelector(':scope > div');
+    expect(innerRow).not.toBeNull();
+    expect(innerRow).toHaveClass('flex', 'items-center', 'gap-3', 'py-3');
   });
 
   it('checkbox aria-label reads "Mark complete: <desc>" when todo is active', () => {
@@ -129,5 +139,46 @@ describe('<TodoRow />', () => {
     const { container: completedContainer } = renderRow({ todo: { completed: true } as Todo });
     const completedDesc = completedContainer.querySelector('span.flex-1');
     expect(completedDesc).toHaveClass('transition-[opacity,text-decoration-color]');
+  });
+
+  it('renders <InlineError> inside the same <li> when error prop is non-empty', () => {
+    const { container } = renderRow({
+      error: "Couldn't save. Check your connection.",
+      onRetry: vi.fn(),
+    });
+    const li = container.querySelector('li');
+    expect(li).not.toBeNull();
+    const alert = within(li as HTMLElement).getByRole('alert');
+    expect(alert).toBeInTheDocument();
+    expect(alert).toHaveTextContent("Couldn't save. Check your connection.");
+  });
+
+  it('forwards onRetry to InlineError; clicking Retry fires onRetry once', async () => {
+    const user = userEvent.setup();
+    const onRetry = vi.fn();
+    renderRow({ error: "Couldn't save. Check your connection.", onRetry });
+    const retryBtn = screen.getByRole('button', { name: /retry/i });
+    await user.click(retryBtn);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards isRetrying to InlineError; Retry button is disabled + aria-busy', () => {
+    renderRow({
+      error: "Couldn't save. Check your connection.",
+      onRetry: vi.fn(),
+      isRetrying: true,
+    });
+    const retryBtn = screen.getByRole('button', { name: /retry/i }) as HTMLButtonElement;
+    expect(retryBtn).toBeDisabled();
+    expect(retryBtn).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it.each([
+    ['null', null],
+    ['undefined', undefined],
+    ['empty string', ''],
+  ])('does NOT render error region when error is %s', (_label, value) => {
+    renderRow({ error: value as string | null | undefined });
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });

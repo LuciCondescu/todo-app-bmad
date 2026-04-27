@@ -21,4 +21,19 @@ describe('<DeleteTodoModal /> accessibility', () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it('error state — zero axe-core violations', async () => {
+    const noop = () => {};
+    const { container } = render(
+      <DeleteTodoModal
+        todo={fixture}
+        onCancel={noop}
+        onConfirm={noop}
+        error="Couldn't delete. Check your connection."
+        isDeleting={false}
+      />,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
 });

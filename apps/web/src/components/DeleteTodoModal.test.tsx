@@ -91,4 +91,101 @@ describe('<DeleteTodoModal />', () => {
     expect(cancel).toHaveClass('min-h-[44px]', 'font-medium');
     expect(del).toHaveClass('min-h-[44px]', 'font-medium');
   });
+
+  it('renders InlineError in place of body text when error prop is set', () => {
+    render(
+      <DeleteTodoModal
+        todo={todoFixture}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        error="Couldn't delete. Check your connection."
+      />,
+    );
+    const alert = screen.getByRole('alert');
+    expect(alert).toBeInTheDocument();
+    expect(alert).toHaveTextContent("Couldn't delete. Check your connection.");
+    expect(screen.queryByText('This cannot be undone.')).toBeNull();
+  });
+
+  it('Delete button label flips to "Retry" in error state, with Danger variant retained', () => {
+    render(
+      <DeleteTodoModal
+        todo={todoFixture}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        error="Couldn't delete. Check your connection."
+      />,
+    );
+    const retry = screen.getByRole('button', { name: 'Retry' });
+    expect(retry).toBeInTheDocument();
+    expect(retry).toHaveClass('bg-[var(--color-danger)]');
+    // Original "Delete" label is gone in error state.
+    expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull();
+  });
+
+  it('isDeleting disables the Delete/Retry button and sets aria-busy; Cancel stays enabled', () => {
+    const { rerender } = render(
+      <DeleteTodoModal
+        todo={todoFixture}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        isDeleting={true}
+      />,
+    );
+    const del = screen.getByRole('button', { name: 'Delete' }) as HTMLButtonElement;
+    const cancel = screen.getByRole('button', { name: 'Cancel' }) as HTMLButtonElement;
+    expect(del).toBeDisabled();
+    expect(del).toHaveAttribute('aria-busy', 'true');
+    expect(cancel).not.toBeDisabled();
+
+    rerender(
+      <DeleteTodoModal
+        todo={todoFixture}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        error="Couldn't delete. Check your connection."
+        isDeleting={true}
+      />,
+    );
+    const retry = screen.getByRole('button', { name: 'Retry' }) as HTMLButtonElement;
+    const cancel2 = screen.getByRole('button', { name: 'Cancel' }) as HTMLButtonElement;
+    expect(retry).toBeDisabled();
+    expect(retry).toHaveAttribute('aria-busy', 'true');
+    expect(cancel2).not.toBeDisabled();
+  });
+
+  it('Cancel button remains enabled in error state and still fires onCancel on click', async () => {
+    const user = userEvent.setup();
+    const onCancel = vi.fn();
+    render(
+      <DeleteTodoModal
+        todo={todoFixture}
+        onCancel={onCancel}
+        onConfirm={vi.fn()}
+        error="Couldn't delete. Check your connection."
+        isDeleting={false}
+      />,
+    );
+    const cancel = screen.getByRole('button', { name: 'Cancel' }) as HTMLButtonElement;
+    expect(cancel).not.toBeDisabled();
+    await user.click(cancel);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('aria-describedby on <dialog> still points at a real node when body is replaced', () => {
+    const { container } = render(
+      <DeleteTodoModal
+        todo={todoFixture}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+        error="Couldn't delete. Check your connection."
+      />,
+    );
+    const dialog = screen.getByRole('dialog');
+    const describedBy = dialog.getAttribute('aria-describedby');
+    expect(describedBy).not.toBeNull();
+    const body = container.querySelector(`[id="${describedBy!}"]`);
+    expect(body).not.toBeNull();
+    expect(body).toContainElement(screen.getByRole('alert'));
+  });
 });

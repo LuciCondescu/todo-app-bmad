@@ -46,4 +46,20 @@ describe('<TodoRow /> accessibility', () => {
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
+
+  it('error state — zero axe-core violations', async () => {
+    const { container } = render(
+      <ul>
+        <TodoRow
+          todo={activeTodo}
+          onToggle={noop}
+          onDeleteRequest={noop}
+          error="Couldn't save. Check your connection."
+          onRetry={noop}
+        />
+      </ul>,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
 });

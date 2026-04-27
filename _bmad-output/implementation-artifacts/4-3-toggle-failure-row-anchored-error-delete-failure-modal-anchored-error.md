@@ -1,6 +1,6 @@
 # Story 4.3: Toggle-failure row-anchored error + delete-failure modal-anchored error
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -129,48 +129,48 @@ so that errors appear exactly where I took the action and I can retry without re
 
 ### Toggle path
 
-- [ ] **Task 1 — Extend `TodoRow` layout + props (AC: 1)**
-  - [ ] Open `apps/web/src/components/TodoRow.tsx`.
-  - [ ] Extend `TodoRowProps` with three optional new props: `error?: string | null;`, `onRetry?: () => void;`, `isRetrying?: boolean;`. Keep the existing four.
-  - [ ] Refactor the `<li>` to be a CONTAINER (no flex on `<li>` itself). Move the current flex-row classes (`flex items-center gap-3 py-3 md:py-4 px-2`) onto an INNER `<div>` that wraps the checkbox + description + delete button. The `<li>` keeps only `border-b border-[--color-border]` and picks up `flex flex-col` so error stacks beneath.
-  - [ ] Conditionally render `<InlineError message={error} onRetry={onRetry} isRetrying={isRetrying} />` inside the `<li>`, wrapped in a padded sibling `<div className="pb-3 md:pb-4 px-2">` so the error aligns with the row's horizontal rhythm. Condition: `error && error.length > 0 ? (<div>...InlineError...</div>) : null`.
-  - [ ] Import `InlineError` with the project's `.js` extension convention: `import InlineError from './InlineError.js';`
-  - [ ] **Do NOT** wire `error` / `onRetry` / `isRetrying` into the `memo()` comparator — React.memo's default shallow comparison works as long as parents pass stable references. Use `useCallback` for `onRetry` in `TodoList` / `App.tsx` callers.
-  - [ ] `isMutating` and the new `isRetrying` prop serve different purposes: `isMutating` disables the row's checkbox + delete button (existing Story 2.5 behavior; unused in MVP — no caller sets it today); `isRetrying` threads down to the `InlineError`'s Retry button. Do not conflate them.
+- [x] **Task 1 — Extend `TodoRow` layout + props (AC: 1)**
+  - [x] Open `apps/web/src/components/TodoRow.tsx`.
+  - [x] Extend `TodoRowProps` with three optional new props: `error?: string | null;`, `onRetry?: () => void;`, `isRetrying?: boolean;`. Keep the existing four.
+  - [x] Refactor the `<li>` to be a CONTAINER (no flex on `<li>` itself). Move the current flex-row classes (`flex items-center gap-3 py-3 md:py-4 px-2`) onto an INNER `<div>` that wraps the checkbox + description + delete button. The `<li>` keeps only `border-b border-[--color-border]` and picks up `flex flex-col` so error stacks beneath.
+  - [x] Conditionally render `<InlineError message={error} onRetry={onRetry} isRetrying={isRetrying} />` inside the `<li>`, wrapped in a padded sibling `<div className="pb-3 md:pb-4 px-2">` so the error aligns with the row's horizontal rhythm. Condition: `error && error.length > 0 ? (<div>...InlineError...</div>) : null`.
+  - [x] Import `InlineError` with the project's `.js` extension convention: `import InlineError from './InlineError.js';`
+  - [x] **Do NOT** wire `error` / `onRetry` / `isRetrying` into the `memo()` comparator — React.memo's default shallow comparison works as long as parents pass stable references. Use `useCallback` for `onRetry` in `TodoList` / `App.tsx` callers.
+  - [x] `isMutating` and the new `isRetrying` prop serve different purposes: `isMutating` disables the row's checkbox + delete button (existing Story 2.5 behavior; unused in MVP — no caller sets it today); `isRetrying` threads down to the `InlineError`'s Retry button. Do not conflate them.
 
-- [ ] **Task 2 — Update `TodoRow.test.tsx` + `TodoRow.a11y.test.tsx` (AC: 11, 12)**
-  - [ ] Open `apps/web/src/components/TodoRow.test.tsx`.
-  - [ ] Update the existing `it('renders <li> root with flex row layout and border', ...)` at line 33 — move the flex-row-class assertions from the `<li>` to the inner `<div>`. The `<li>` should be asserted to have `border-b` and `flex-col`; the inner `<div>` should be asserted to have `flex items-center gap-3 py-3`. Tag the test comment explicitly: `// Layout refactor: <li> is the container; flex-row sits on an inner wrapper so InlineError can stack below.`
-  - [ ] Add: `it('renders <InlineError> inside the same <li> when error prop is non-empty', ...)` — assert `screen.getByRole('alert')` exists and the `<li>` is the ancestor.
-  - [ ] Add: `it('forwards onRetry to InlineError; clicking Retry fires onRetry once', ...)` — use `userEvent.setup()`.
-  - [ ] Add: `it('forwards isRetrying to InlineError; Retry button is disabled + aria-busy', ...)`.
-  - [ ] Add: `it('does NOT render error region when error is null / undefined / empty', ...)` — table-driven with `.each`.
-  - [ ] Open `apps/web/test/a11y/TodoRow.a11y.test.tsx`.
-  - [ ] Add a new `it('error state — zero axe-core violations', ...)` that renders `<TodoRow todo={...} onToggle={() => {}} onDeleteRequest={() => {}} error="Couldn't save. Check your connection." onRetry={() => {}} />` and asserts `axe` reports zero violations. Mirror the existing pattern (import `axe`, call `expect(results).toHaveNoViolations()`).
+- [x] **Task 2 — Update `TodoRow.test.tsx` + `TodoRow.a11y.test.tsx` (AC: 11, 12)**
+  - [x] Open `apps/web/src/components/TodoRow.test.tsx`.
+  - [x] Update the existing `it('renders <li> root with flex row layout and border', ...)` at line 33 — move the flex-row-class assertions from the `<li>` to the inner `<div>`. The `<li>` should be asserted to have `border-b` and `flex-col`; the inner `<div>` should be asserted to have `flex items-center gap-3 py-3`. Tag the test comment explicitly: `// Layout refactor: <li> is the container; flex-row sits on an inner wrapper so InlineError can stack below.`
+  - [x] Add: `it('renders <InlineError> inside the same <li> when error prop is non-empty', ...)` — assert `screen.getByRole('alert')` exists and the `<li>` is the ancestor.
+  - [x] Add: `it('forwards onRetry to InlineError; clicking Retry fires onRetry once', ...)` — use `userEvent.setup()`.
+  - [x] Add: `it('forwards isRetrying to InlineError; Retry button is disabled + aria-busy', ...)`.
+  - [x] Add: `it('does NOT render error region when error is null / undefined / empty', ...)` — table-driven with `.each`.
+  - [x] Open `apps/web/test/a11y/TodoRow.a11y.test.tsx`.
+  - [x] Add a new `it('error state — zero axe-core violations', ...)` that renders `<TodoRow todo={...} onToggle={() => {}} onDeleteRequest={() => {}} error="Couldn't save. Check your connection." onRetry={() => {}} />` and asserts `axe` reports zero violations. Mirror the existing pattern (import `axe`, call `expect(results).toHaveNoViolations()`).
 
-- [ ] **Task 3 — Extend `TodoList` to thread per-row error state (AC: 2)**
-  - [ ] Open `apps/web/src/components/TodoList.tsx`.
-  - [ ] Extend `TodoListProps` with three optional new props: `toggleErrors?: Map<string, { desiredCompleted: boolean; message: string }>`, `onToggleRetry?: (id: string) => void`, `retryingIds?: Set<string>`. All optional so existing callers (there's just `App.tsx` — but keep it graceful) don't break.
-  - [ ] In both the Active map and the Completed map, compute per-row error data:
+- [x] **Task 3 — Extend `TodoList` to thread per-row error state (AC: 2)**
+  - [x] Open `apps/web/src/components/TodoList.tsx`.
+  - [x] Extend `TodoListProps` with three optional new props: `toggleErrors?: Map<string, { desiredCompleted: boolean; message: string }>`, `onToggleRetry?: (id: string) => void`, `retryingIds?: Set<string>`. All optional so existing callers (there's just `App.tsx` — but keep it graceful) don't break.
+  - [x] In both the Active map and the Completed map, compute per-row error data:
     ```tsx
     const entry = toggleErrors?.get(todo.id);
     const error = entry?.message ?? null;
     const isRetrying = retryingIds?.has(todo.id) ?? false;
     const rowRetry = error && onToggleRetry ? () => onToggleRetry(todo.id) : undefined;
     ```
-  - [ ] Pass `error={error}`, `onRetry={rowRetry}`, `isRetrying={isRetrying}` to `<TodoRow />`.
-  - [ ] **Performance consideration:** the `rowRetry` closure is created on every render. For MVP list sizes (≤50 todos per SC), this is acceptable. The React.memo on `TodoRow` will re-render the row when the closure identity changes — but that only matters for rows with an active error (at most one per render cycle in practice, since failures are rare). Do not over-engineer with a per-id `useMemo`/`useCallback` map.
-  - [ ] Keep `list-none` class on `<ul>`; no layout change needed beyond TodoRow's internal refactor.
+  - [x] Pass `error={error}`, `onRetry={rowRetry}`, `isRetrying={isRetrying}` to `<TodoRow />`.
+  - [x] **Performance consideration:** the `rowRetry` closure is created on every render. For MVP list sizes (≤50 todos per SC), this is acceptable. The React.memo on `TodoRow` will re-render the row when the closure identity changes — but that only matters for rows with an active error (at most one per render cycle in practice, since failures are rare). Do not over-engineer with a per-id `useMemo`/`useCallback` map.
+  - [x] Keep `list-none` class on `<ul>`; no layout change needed beyond TodoRow's internal refactor.
 
-- [ ] **Task 4 — Extend `App.tsx` toggle-failure state + handlers (AC: 3, 4, 5, 6)**
-  - [ ] Open `apps/web/src/App.tsx`.
-  - [ ] Add two new state hooks near the existing `todoPendingDelete`:
+- [x] **Task 4 — Extend `App.tsx` toggle-failure state + handlers (AC: 3, 4, 5, 6)**
+  - [x] Open `apps/web/src/App.tsx`.
+  - [x] Add two new state hooks near the existing `todoPendingDelete`:
     ```tsx
     type ToggleAttempt = { desiredCompleted: boolean; message: string };
     const [toggleErrors, setToggleErrors] = useState<Map<string, ToggleAttempt>>(() => new Map());
     const [retryingIds, setRetryingIds] = useState<Set<string>>(() => new Set());
     ```
-  - [ ] Replace the existing `handleToggle` with a version that clears/sets per-id error state via per-call callbacks:
+  - [x] Replace the existing `handleToggle` with a version that clears/sets per-id error state via per-call callbacks:
     ```tsx
     const handleToggle = useCallback(
       (id: string, completed: boolean) => {
@@ -211,7 +211,7 @@ so that errors appear exactly where I took the action and I can retry without re
     );
     ```
     Note: The outer `handleToggle` signature `(id, completed) => void` is preserved — existing `onToggle` callers (TodoRow) pass through unchanged.
-  - [ ] Add `handleToggleRetry`:
+  - [x] Add `handleToggleRetry`:
     ```tsx
     const handleToggleRetry = useCallback(
       (id: string) => {
@@ -225,7 +225,7 @@ so that errors appear exactly where I took the action and I can retry without re
     );
     ```
     This deliberately calls `handleToggle` so the success/error path is a single implementation (avoiding drift between retry-cleanup and fresh-toggle-cleanup).
-  - [ ] Pass new props to `<TodoList />`:
+  - [x] Pass new props to `<TodoList />`:
     ```tsx
     <TodoList
       todos={data}
@@ -240,11 +240,11 @@ so that errors appear exactly where I took the action and I can retry without re
 
 ### Delete path
 
-- [ ] **Task 5 — Extend `DeleteTodoModal` props + conditional render (AC: 7)**
-  - [ ] Open `apps/web/src/components/DeleteTodoModal.tsx`.
-  - [ ] Extend `DeleteTodoModalProps` with two optional new props: `error?: string | null;`, `isDeleting?: boolean;`.
-  - [ ] Destructure with defaults: `error = null`, `isDeleting = false`.
-  - [ ] Replace the body `<p id={bodyId}>This cannot be undone.</p>` with a conditional:
+- [x] **Task 5 — Extend `DeleteTodoModal` props + conditional render (AC: 7)**
+  - [x] Open `apps/web/src/components/DeleteTodoModal.tsx`.
+  - [x] Extend `DeleteTodoModalProps` with two optional new props: `error?: string | null;`, `isDeleting?: boolean;`.
+  - [x] Destructure with defaults: `error = null`, `isDeleting = false`.
+  - [x] Replace the body `<p id={bodyId}>This cannot be undone.</p>` with a conditional:
     ```tsx
     {error ? (
       <div id={bodyId} className="mt-2">
@@ -257,26 +257,26 @@ so that errors appear exactly where I took the action and I can retry without re
     )}
     ```
     — the `id={bodyId}` attribute MOVES onto whichever element is rendered so `aria-describedby` on the `<dialog>` always points at a real node.
-  - [ ] Replace the Delete button's literal label `Delete` with `{error ? 'Retry' : 'Delete'}`. Keep everything else about the button (type, onClick, className) identical — the Danger variant is preserved whether the label is "Delete" or "Retry".
-  - [ ] Add `disabled={isDeleting}` and `aria-busy={isDeleting ? 'true' : undefined}` on the Delete/Retry button.
-  - [ ] Cancel button stays exactly as-is (no `disabled` wiring). The initial-focus effect (line 26: `cancelBtnRef.current?.focus()`) continues to fire on mount — which is still correct for the error state (Cancel is the least destructive option).
-  - [ ] Import `InlineError` with the `.js` extension: `import InlineError from './InlineError.js';`
-  - [ ] **Do NOT** pass `onRetry` to the nested `InlineError`. The modal's Delete/Retry button is the single danger control — wiring `onRetry` on `InlineError` would produce TWO buttons labeled "Retry" in the same alert region, which is both a UX and a tab-order regression.
+  - [x] Replace the Delete button's literal label `Delete` with `{error ? 'Retry' : 'Delete'}`. Keep everything else about the button (type, onClick, className) identical — the Danger variant is preserved whether the label is "Delete" or "Retry".
+  - [x] Add `disabled={isDeleting}` and `aria-busy={isDeleting ? 'true' : undefined}` on the Delete/Retry button.
+  - [x] Cancel button stays exactly as-is (no `disabled` wiring). The initial-focus effect (line 26: `cancelBtnRef.current?.focus()`) continues to fire on mount — which is still correct for the error state (Cancel is the least destructive option).
+  - [x] Import `InlineError` with the `.js` extension: `import InlineError from './InlineError.js';`
+  - [x] **Do NOT** pass `onRetry` to the nested `InlineError`. The modal's Delete/Retry button is the single danger control — wiring `onRetry` on `InlineError` would produce TWO buttons labeled "Retry" in the same alert region, which is both a UX and a tab-order regression.
 
-- [ ] **Task 6 — Update `DeleteTodoModal.test.tsx` + `DeleteTodoModal.a11y.test.tsx` (AC: 11, 12)**
-  - [ ] Open `apps/web/src/components/DeleteTodoModal.test.tsx`.
-  - [ ] Add: `it('renders InlineError in place of body text when error prop is set', ...)` — assert `screen.getByRole('alert')` exists with the provided message; assert the original body text `"This cannot be undone."` is NOT present.
-  - [ ] Add: `it('Delete button label flips to "Retry" in error state', ...)` — assert `screen.getByRole('button', { name: 'Retry' })` exists and has `bg-[--color-danger]`.
-  - [ ] Add: `it('isDeleting disables the Delete/Retry button and sets aria-busy', ...)` — both `"Delete"` and `"Retry"` labels; Cancel stays enabled in both.
-  - [ ] Add: `it('Cancel button remains enabled in error state', ...)` — `{ error: "...", isDeleting: false }`, Cancel has no `disabled` attribute, click fires `onCancel`.
-  - [ ] Add: `it('aria-describedby on <dialog> still points at a real node when body is replaced', ...)` — re-use the existing `aria-describedby` test pattern at line 32 but in the error state.
-  - [ ] Open `apps/web/test/a11y/DeleteTodoModal.a11y.test.tsx`.
-  - [ ] Add: `it('error state — zero axe-core violations', ...)` — render modal with a fake todo and `error="Couldn't delete. Check your connection."` and `isDeleting={false}`.
+- [x] **Task 6 — Update `DeleteTodoModal.test.tsx` + `DeleteTodoModal.a11y.test.tsx` (AC: 11, 12)**
+  - [x] Open `apps/web/src/components/DeleteTodoModal.test.tsx`.
+  - [x] Add: `it('renders InlineError in place of body text when error prop is set', ...)` — assert `screen.getByRole('alert')` exists with the provided message; assert the original body text `"This cannot be undone."` is NOT present.
+  - [x] Add: `it('Delete button label flips to "Retry" in error state', ...)` — assert `screen.getByRole('button', { name: 'Retry' })` exists and has `bg-[--color-danger]`.
+  - [x] Add: `it('isDeleting disables the Delete/Retry button and sets aria-busy', ...)` — both `"Delete"` and `"Retry"` labels; Cancel stays enabled in both.
+  - [x] Add: `it('Cancel button remains enabled in error state', ...)` — `{ error: "...", isDeleting: false }`, Cancel has no `disabled` attribute, click fires `onCancel`.
+  - [x] Add: `it('aria-describedby on <dialog> still points at a real node when body is replaced', ...)` — re-use the existing `aria-describedby` test pattern at line 32 but in the error state.
+  - [x] Open `apps/web/test/a11y/DeleteTodoModal.a11y.test.tsx`.
+  - [x] Add: `it('error state — zero axe-core violations', ...)` — render modal with a fake todo and `error="Couldn't delete. Check your connection."` and `isDeleting={false}`.
 
-- [ ] **Task 7 — Extend `App.tsx` delete-failure state + handlers (AC: 8, 9, 10)**
-  - [ ] Open `apps/web/src/App.tsx`.
-  - [ ] Add: `const [deleteError, setDeleteError] = useState<string | null>(null);`
-  - [ ] Refactor `handleConfirmDelete` (currently at line 45 in the Story 3.5 version) — MOVE the `setTodoPendingDelete(null)` synchronous call into the mutation's per-call `onSuccess`:
+- [x] **Task 7 — Extend `App.tsx` delete-failure state + handlers (AC: 8, 9, 10)**
+  - [x] Open `apps/web/src/App.tsx`.
+  - [x] Add: `const [deleteError, setDeleteError] = useState<string | null>(null);`
+  - [x] Refactor `handleConfirmDelete` (currently at line 45 in the Story 3.5 version) — MOVE the `setTodoPendingDelete(null)` synchronous call into the mutation's per-call `onSuccess`:
     ```tsx
     const handleConfirmDelete = useCallback(
       (todo: Todo) => {
@@ -298,7 +298,7 @@ so that errors appear exactly where I took the action and I can retry without re
     );
     ```
     This is the single biggest semantic change in the file — the Story 3.5 comment about "focus falls to document.body" at lines 49–54 must be UPDATED (or removed) since the `queueMicrotask` pattern is now in use for the success path too.
-  - [ ] Update `handleCancel` to also clear the delete error:
+  - [x] Update `handleCancel` to also clear the delete error:
     ```tsx
     const handleCancel = useCallback(() => {
       setTodoPendingDelete(null);
@@ -308,7 +308,7 @@ so that errors appear exactly where I took the action and I can retry without re
       });
     }, []);
     ```
-  - [ ] Wire the modal with the new props:
+  - [x] Wire the modal with the new props:
     ```tsx
     <DeleteTodoModal
       todo={todoPendingDelete}
@@ -319,47 +319,47 @@ so that errors appear exactly where I took the action and I can retry without re
     />
     ```
     — `deleteMutation` is currently destructured as `const { mutate: deleteMutate } = useDeleteTodo();` (line 18). Change that to `const deleteMutation = useDeleteTodo();` and rename `deleteMutate` references to `deleteMutation.mutate`. (Or keep both by also capturing `deleteMutation` alongside.) Choose whichever yields the smallest diff.
-  - [ ] **Important:** the `deleteMutation.isPending` flag is true during the in-flight delete AND during an in-flight retry. Both are periods where the Delete/Retry button should be disabled. This is AC7-correct behavior.
+  - [x] **Important:** the `deleteMutation.isPending` flag is true during the in-flight delete AND during an in-flight retry. Both are periods where the Delete/Retry button should be disabled. This is AC7-correct behavior.
 
 ### Integration + E2E + gates
 
-- [ ] **Task 8 — Update `App.integration.test.tsx` (AC: 13)**
-  - [ ] Extend the existing `it('toggle failure reverts the row to its prior state ...')` (currently lines 396–437):
+- [x] **Task 8 — Update `App.integration.test.tsx` (AC: 13)**
+  - [x] Extend the existing `it('toggle failure reverts the row to its prior state ...')` (currently lines 396–437):
     - After the revert assertion, add: `const alert = await screen.findByRole('alert');`, `expect(alert).toHaveTextContent("Couldn't save. Check your connection.");`, `expect(alert).not.toHaveTextContent('boom');`, `expect(within(alert).getByRole('button', { name: /retry/i })).toBeVisible();`. Import `within` from `@testing-library/react`.
-  - [ ] Add: `it('toggle failure → Retry succeeds → row moves to Completed, error unmounts', ...)` — fetch mock returns 500 on first PATCH, 200 on second; after click Retry, PATCH count is 2, both calls' body is `{ completed: true }`, row is in the Completed section, `screen.queryByRole('alert')` is null.
-  - [ ] Add: `it('toggle failure → fresh toggle on same row succeeds, error unmounts', ...)` — fetch mock returns 500 on first PATCH, 200 on second; after second checkbox click (not Retry), error unmounts per AC5.
-  - [ ] Add: `it('delete failure → modal stays open with error, Retry succeeds → row removed, modal closes', ...)` — fetch mock: GET returns one todo; DELETE returns 500 on first call, 204 on second. Click delete icon → modal opens → click Delete → assert modal still visible, body replaced by alert with locked delete copy, Delete button now labeled "Retry". Click Retry → DELETE count is 2, modal not visible, todo gone from list.
-  - [ ] Add: `it('delete failure → Cancel in error state closes modal without firing DELETE', ...)` — DELETE returns 500 once; click Cancel after seeing the error; assert modal closed, DELETE count stays at 1 (no retry fired), row still visible.
-  - [ ] Reuse the established `mountApp()` + `FetchFn` + `vi.stubGlobal('fetch', ...)` + `afterEach(() => vi.unstubAllGlobals())` harness. No new infrastructure.
+  - [x] Add: `it('toggle failure → Retry succeeds → row moves to Completed, error unmounts', ...)` — fetch mock returns 500 on first PATCH, 200 on second; after click Retry, PATCH count is 2, both calls' body is `{ completed: true }`, row is in the Completed section, `screen.queryByRole('alert')` is null.
+  - [x] Add: `it('toggle failure → fresh toggle on same row succeeds, error unmounts', ...)` — fetch mock returns 500 on first PATCH, 200 on second; after second checkbox click (not Retry), error unmounts per AC5.
+  - [x] Add: `it('delete failure → modal stays open with error, Retry succeeds → row removed, modal closes', ...)` — fetch mock: GET returns one todo; DELETE returns 500 on first call, 204 on second. Click delete icon → modal opens → click Delete → assert modal still visible, body replaced by alert with locked delete copy, Delete button now labeled "Retry". Click Retry → DELETE count is 2, modal not visible, todo gone from list.
+  - [x] Add: `it('delete failure → Cancel in error state closes modal without firing DELETE', ...)` — DELETE returns 500 once; click Cancel after seeing the error; assert modal closed, DELETE count stays at 1 (no retry fired), row still visible.
+  - [x] Reuse the established `mountApp()` + `FetchFn` + `vi.stubGlobal('fetch', ...)` + `afterEach(() => vi.unstubAllGlobals())` harness. No new infrastructure.
 
-- [ ] **Task 9 — Playwright E2E specs (AC: 14)**
-  - [ ] Create `apps/web/e2e/journey-3-toggle-fail.spec.ts`:
+- [x] **Task 9 — Playwright E2E specs (AC: 14)**
+  - [x] Create `apps/web/e2e/journey-3-toggle-fail.spec.ts`:
     - Copy `truncateTodos()` helper + `REPO_ROOT` + `addTodo` helper verbatim from `journey-2-delete.spec.ts`.
     - Seed one todo via the app UI (`addTodo(page, 'Buy milk')`).
     - Register `page.route('**/v1/todos/*', ...)` BEFORE the checkbox click. On method === 'PATCH', return 500 on first call (`postCount++` pattern from Story 4.2 guidance) and `route.continue()` thereafter.
     - Click the checkbox (`page.getByLabelText('Mark complete: Buy milk').click()`).
     - Assert within 1000ms: the row's `InlineError` is visible with exact text `"Couldn't save. Check your connection."`; the checkbox is unchecked (reverted); within the row, a Retry button is present.
     - Click Retry; assert the row moves to the Completed section (locate by `heading: "Completed"` + row presence in its subtree); assert the alert disappears.
-  - [ ] Create `apps/web/e2e/journey-3-delete-fail.spec.ts`:
+  - [x] Create `apps/web/e2e/journey-3-delete-fail.spec.ts`:
     - Same helper boilerplate.
     - Seed one todo; click delete icon; modal opens.
     - Register `page.route('**/v1/todos/*', ...)` filtering on method === 'DELETE'; 500 on first, pass-through thereafter.
     - Click Delete; assert the modal stays visible; assert the body now contains the alert with `"Couldn't delete. Check your connection."`; assert a button labeled `Retry` is present.
     - Click Retry; assert the modal disappears; assert the todo row is gone from the list.
-  - [ ] Do not factor a shared helper file yet — three specs duplicating `truncateTodos()` is acceptable for MVP; a single refactor at Epic 4 close is the better moment.
+  - [x] Do not factor a shared helper file yet — three specs duplicating `truncateTodos()` is acceptable for MVP; a single refactor at Epic 4 close is the better moment.
 
-- [ ] **Task 10 — Verify gates (AC: 15)**
-  - [ ] `npm run typecheck --workspace @todo-app/web` → pass.
-  - [ ] `npm run lint --workspace @todo-app/web` → pass, no new warnings.
-  - [ ] `npm test --workspace @todo-app/web` → all pre-existing + extended + new tests pass.
-  - [ ] `npm run build --workspace @todo-app/web` → pass.
-  - [ ] `npm run test:e2e --workspace @todo-app/web` (requires `docker compose up -d postgres` + API dev server) → all specs pass including both new journey-3 specs.
-  - [ ] `git diff --stat` lists exactly the expected files (see File List Plan below).
+- [x] **Task 10 — Verify gates (AC: 15)**
+  - [x] `npm run typecheck --workspace @todo-app/web` → pass.
+  - [x] `npm run lint --workspace @todo-app/web` → pass, no new warnings.
+  - [x] `npm test --workspace @todo-app/web` → all pre-existing + extended + new tests pass.
+  - [x] `npm run build --workspace @todo-app/web` → pass.
+  - [x] `npm run test:e2e --workspace @todo-app/web` (requires `docker compose up -d postgres` + API dev server) → all specs pass including both new journey-3 specs.
+  - [x] `git diff --stat` lists exactly the expected files (see File List Plan below).
 
-- [ ] **Task 11 — Story hygiene**
-  - [ ] Update this story's **Dev Agent Record → File List** with actual paths touched.
-  - [ ] Fill **Completion Notes List** with any deviations.
-  - [ ] Run `code-review` to move the story to `review`.
+- [x] **Task 11 — Story hygiene**
+  - [x] Update this story's **Dev Agent Record → File List** with actual paths touched.
+  - [x] Fill **Completion Notes List** with any deviations.
+  - [x] Run `code-review` to move the story to `review`.
 
 ### File List Plan
 
@@ -533,10 +533,46 @@ so that errors appear exactly where I took the action and I can retry without re
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+claude-opus-4-7 (Opus 4.7, 1M context)
 
 ### Debug Log References
 
+- Full unit + integration suite (`npm test --workspace @todo-app/web`): 28 files, 169 tests, all green.
+- Typecheck (`npm run typecheck --workspace @todo-app/web`): clean.
+- Build (`npm run build --workspace @todo-app/web`): clean (240.78 kB JS / 14.35 kB CSS).
+- Lint (`npm run lint` from repo root): 0 errors; 1 pre-existing warning in `apps/api/src/db/index.ts` (unrelated to this story; verified against `master` baseline via `git stash`).
+- Playwright e2e (`npm run test:e2e --workspace @todo-app/web`): 20/20 passed including new `journey-3-toggle-fail.spec.ts` and `journey-3-delete-fail.spec.ts`.
+
 ### Completion Notes List
 
+- **TodoRow refactor (Task 1)**: `<li>` is now `flex flex-col border-b`; flex-row layout moved to inner `<div>` so `InlineError` can stack below the row content. Existing class-list assertion in `TodoRow.test.tsx` was updated to assert `flex-col` on the `<li>` and `flex items-center gap-3 py-3` on the inner wrapper (per Dev Notes).
+- **TodoList per-row threading (Task 3)**: The `rowRetry` closure is created per render — left as-is for MVP list sizes per Task 3 explicit guidance ("at most one per render cycle in practice"); no `useMemo`/`useCallback` map.
+- **App.tsx toggle path (Task 4)**: `handleToggleRetry` reuses `handleToggle` (after marking the id retrying) so success/error cleanup lives in a single implementation. Map/Set updates use functional updaters with new instances to avoid React's `Object.is` bail-out (per Dev Notes "Latest Tech Information").
+- **DeleteTodoModal (Task 5)**: `id={bodyId}` moves onto whichever element renders so `aria-describedby` always points at a real node. Cancel button stays enabled in error state (least-destructive default). `InlineError` is imported WITHOUT `onRetry` — the modal's Delete/Retry button is the single danger control (per Dev Notes "no `onRetry` on the nested `InlineError`").
+- **App.tsx delete path (Task 7)**: Switched `const { mutate: deleteMutate } = useDeleteTodo();` → `const deleteMutation = useDeleteTodo();` to access both `.mutate` and `.isPending`. The Story 3.5 synchronous `setTodoPendingDelete(null)` was moved into the per-call `onSuccess`; the outdated comment about focus falling to body was removed and replaced with a note explaining the explicit `queueMicrotask` focus-restoration. `handleCancel` now also clears `deleteError`.
+- **AC15 — diff scope clean**: only the files in the File List Plan are touched; pre-staged Story 5.x context files and `docs/ai-usage-log.md` (already staged before this story started) are unrelated.
+
 ### File List
+
+**Modified:**
+- `apps/web/src/components/TodoRow.tsx`
+- `apps/web/src/components/TodoRow.test.tsx`
+- `apps/web/test/a11y/TodoRow.a11y.test.tsx`
+- `apps/web/src/components/TodoList.tsx`
+- `apps/web/src/components/DeleteTodoModal.tsx`
+- `apps/web/src/components/DeleteTodoModal.test.tsx`
+- `apps/web/test/a11y/DeleteTodoModal.a11y.test.tsx`
+- `apps/web/src/App.tsx`
+- `apps/web/src/App.integration.test.tsx`
+
+**New:**
+- `apps/web/e2e/journey-3-toggle-fail.spec.ts`
+- `apps/web/e2e/journey-3-delete-fail.spec.ts`
+
+**Status:**
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (4-3 → review; last_updated → 2026-04-27)
+- `_bmad-output/implementation-artifacts/4-3-toggle-failure-row-anchored-error-delete-failure-modal-anchored-error.md` (this file)
+
+### Change Log
+
+- 2026-04-27 — Story 4.3 implemented: row-anchored toggle-failure InlineError + retry; modal-anchored delete-failure InlineError with Delete→Retry button flip; locked copy across both verbs; per-call mutation callbacks for App-owned per-id error state. All 11 tasks complete; AC1–AC15 verified.
