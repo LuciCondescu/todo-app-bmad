@@ -40,5 +40,13 @@ export default defineConfig({
       timeout: 120_000,
     },
   ],
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // Story 5.2: Firefox + WebKit added so `npm run test:browsers` (matrix spec)
+  // can run against all three engines. Default `npm run test:e2e` is narrowed
+  // via `--project=chromium` in package.json so existing CI behavior is
+  // unchanged (CI installs Chromium only — see `.github/workflows/ci.yml`).
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+  ],
 });
