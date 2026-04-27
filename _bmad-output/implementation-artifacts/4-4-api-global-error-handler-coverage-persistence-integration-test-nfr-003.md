@@ -1,6 +1,6 @@
 # Story 4.4: API global error handler coverage + persistence integration test (NFR-003)
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -127,10 +127,10 @@ so that NFR-003 (zero loss across refresh/close/restart) and NFR-004 (error resi
 
 ### Error-handler coverage
 
-- [ ] **Task 1 — Create `integration.errors.test.ts` (AC: 1, 2, 3, 4, 5, 6)**
-  - [ ] Create `apps/api/test/integration.errors.test.ts`.
-  - [ ] Top-of-file: mirror `contract.todos.test.ts` imports (`beforeAll`, `afterAll`, `beforeEach`, `describe`, `expect`, `it` from vitest; `buildApp` from `../src/app.js`; `migrateLatest`, `truncateTodos` from `./setup.js`; `FastifyInstance` type from fastify).
-  - [ ] Lifecycle:
+- [x] **Task 1 — Create `integration.errors.test.ts` (AC: 1, 2, 3, 4, 5, 6)**
+  - [x] Create `apps/api/test/integration.errors.test.ts`.
+  - [x] Top-of-file: mirror `contract.todos.test.ts` imports (`beforeAll`, `afterAll`, `beforeEach`, `describe`, `expect`, `it` from vitest; `buildApp` from `../src/app.js`; `migrateLatest`, `truncateTodos` from `./setup.js`; `FastifyInstance` type from fastify).
+  - [x] Lifecycle:
     ```ts
     let app: FastifyInstance;
     beforeAll(async () => {
@@ -155,7 +155,7 @@ so that NFR-003 (zero loss across refresh/close/restart) and NFR-004 (error resi
     afterAll(async () => { await app.close(); });
     beforeEach(async () => { await truncateTodos(app.db); });
     ```
-  - [ ] **AC2 — PATCH 404 via real route:**
+  - [x] **AC2 — PATCH 404 via real route:**
     ```ts
     it('PATCH /v1/todos/<non-existent-uuid> → 404 with NotFoundError envelope', async () => {
       const missing = '00000000-0000-7000-8000-000000000000';
@@ -172,9 +172,9 @@ so that NFR-003 (zero loss across refresh/close/restart) and NFR-004 (error resi
       });
     });
     ```
-  - [ ] **AC3 — DELETE 404 via real route:** Mirror AC2 with method `DELETE` and same assertion shape.
-  - [ ] **AC4 — POST 400 with no leakage:** use `it.each` for the four payloads listed in AC4. Assert statusCode 400, envelope shape, AND `JSON.stringify(body)` does NOT match `/stack|Ajv|TypeBox/i`.
-  - [ ] **AC5 — Real pg 23505 via test route:**
+  - [x] **AC3 — DELETE 404 via real route:** Mirror AC2 with method `DELETE` and same assertion shape.
+  - [x] **AC4 — POST 400 with no leakage:** use `it.each` for the four payloads listed in AC4. Assert statusCode 400, envelope shape, AND `JSON.stringify(body)` does NOT match `/stack|Ajv|TypeBox/i`.
+  - [x] **AC5 — Real pg 23505 via test route:**
     ```ts
     it('real Postgres 23505 (PK violation) → 409 with safe message, no leakage', async () => {
       const res = await app.inject({ method: 'GET', url: '/__explode/pg-duplicate' });
@@ -191,7 +191,7 @@ so that NFR-003 (zero loss across refresh/close/restart) and NFR-004 (error resi
       expect(raw).not.toMatch(/0+-0000-7000-8000-000000c0ffee/);
     });
     ```
-  - [ ] **AC6 — Generic 500 with logger capture:**
+  - [x] **AC6 — Generic 500 with logger capture:**
     ```ts
     it('generic Error thrown in a test route → 500 generic envelope; pino logger receives the original error', async () => {
       const logSpy = vi.spyOn(app.log, 'error');
@@ -214,14 +214,14 @@ so that NFR-003 (zero loss across refresh/close/restart) and NFR-004 (error resi
     });
     ```
     — import `vi` alongside the other vitest hooks at the top of the file.
-  - [ ] Do NOT test the 400 / 404 / 409 / 500 mapping through synthetic `__explode` routes that merely mock pg shapes — that coverage already lives in `plugins.integration.test.ts`. This story's value-add is REAL-ROUTE + REAL-PG coverage plus logger verification.
+  - [x] Do NOT test the 400 / 404 / 409 / 500 mapping through synthetic `__explode` routes that merely mock pg shapes — that coverage already lives in `plugins.integration.test.ts`. This story's value-add is REAL-ROUTE + REAL-PG coverage plus logger verification.
 
 ### Persistence across app close + rebuild
 
-- [ ] **Task 2 — Create `integration.persistence.test.ts` (AC: 7, 8)**
-  - [ ] Create `apps/api/test/integration.persistence.test.ts`.
-  - [ ] Imports: vitest hooks, `buildApp` from `../src/app.js`, `migrateLatest`, `truncateTodos` from `./setup.js`. No `FastifyInstance` type needed in the outer scope; it's a per-test-local variable.
-  - [ ] Test shape (do not use a shared `app` in `beforeAll` — the whole point is a close + rebuild cycle within one `it`):
+- [x] **Task 2 — Create `integration.persistence.test.ts` (AC: 7, 8)**
+  - [x] Create `apps/api/test/integration.persistence.test.ts`.
+  - [x] Imports: vitest hooks, `buildApp` from `../src/app.js`, `migrateLatest`, `truncateTodos` from `./setup.js`. No `FastifyInstance` type needed in the outer scope; it's a per-test-local variable.
+  - [x] Test shape (do not use a shared `app` in `beforeAll` — the whole point is a close + rebuild cycle within one `it`):
     ```ts
     describe('app close + rebuild preserves todos (FR-011 / NFR-003 boundary 2)', () => {
       it('3 todos created via POST survive app.close() + fresh buildApp() with identical shape and order', async () => {
@@ -267,43 +267,43 @@ so that NFR-003 (zero loss across refresh/close/restart) and NFR-004 (error resi
       });
     });
     ```
-  - [ ] Verify the capture (`const created = res.json()`) carries ALL five fields: `id`, `description`, `completed`, `createdAt`, `userId`. Use `expect(created[0]).toEqual(expect.objectContaining({ id: expect.any(String), description: 'First todo', completed: false, createdAt: expect.any(String), userId: null }))` as an additional guard before the close.
-  - [ ] **Critical:** NO `describe.skipIf(process.env.CI === 'true')`. The `db.persistence.test.ts` skip is CI-specific because docker-compose isn't available there; this test has no docker dependency and MUST run in CI.
+  - [x] Verify the capture (`const created = res.json()`) carries ALL five fields: `id`, `description`, `completed`, `createdAt`, `userId`. Use `expect(created[0]).toEqual(expect.objectContaining({ id: expect.any(String), description: 'First todo', completed: false, createdAt: expect.any(String), userId: null }))` as an additional guard before the close.
+  - [x] **Critical:** NO `describe.skipIf(process.env.CI === 'true')`. The `db.persistence.test.ts` skip is CI-specific because docker-compose isn't available there; this test has no docker dependency and MUST run in CI.
 
 ### CI enforcement + manual smoke
 
-- [ ] **Task 3 — Verify CI enforcement (AC: 9)**
-  - [ ] Read `.github/workflows/ci.yml` and confirm ALL of:
+- [x] **Task 3 — Verify CI enforcement (AC: 9)**
+  - [x] Read `.github/workflows/ci.yml` and confirm ALL of:
     - `services.postgres` is declared with `image: postgres:16-alpine` and a `--health-cmd pg_isready` options block.
     - `env.DATABASE_URL` is set to the in-CI postgres URL at the job level.
     - `npm run migrate --workspace apps/api` runs BEFORE `npm test`.
     - `npm test` is a root-level script that runs all workspaces (sanity-check: open `/Users/lucicondescu/work/training/aine/todo-app/package.json` at the repo root to confirm).
-  - [ ] Do NOT edit `ci.yml`. The current shape is correct — this task is verification, not modification. If anything seems off, escalate via a PR comment rather than silently patching.
-  - [ ] Red-path sanity (local, optional but strongly recommended): run `DATABASE_URL=postgresql://bogus:bogus@127.0.0.1:9999/nope npm test --workspace @todo-app/api` and confirm the new integration files fail FAST (ECONNREFUSED or similar connection error) rather than skipping.
+  - [x] Do NOT edit `ci.yml`. The current shape is correct — this task is verification, not modification. If anything seems off, escalate via a PR comment rather than silently patching.
+  - [x] Red-path sanity (local, optional but strongly recommended): run `DATABASE_URL=postgresql://bogus:bogus@127.0.0.1:9999/nope npm test --workspace @todo-app/api` and confirm the new integration files fail FAST (ECONNREFUSED or similar connection error) rather than skipping.
 
-- [ ] **Task 4 — Manual docker-compose-down smoke (AC: 10)**
-  - [ ] Run the sequence enumerated in AC10 (steps 1–9) locally.
-  - [ ] Record in **Completion Notes List**: (a) the POST response id, (b) the timestamp at step 5 (Ctrl-C) and step 8 (restart), (c) confirmation that the GET at step 9 returned the todo with identical fields.
-  - [ ] If the manual smoke fails — the todo disappears — DO NOT file a bug silently. The pg-data volume binding is a load-bearing NFR-003 contract; a failure here is an epic-level blocker.
+- [x] **Task 4 — Manual docker-compose-down smoke (AC: 10)**
+  - [x] Run the sequence enumerated in AC10 (steps 1–9) locally.
+  - [x] Record in **Completion Notes List**: (a) the POST response id, (b) the timestamp at step 5 (Ctrl-C) and step 8 (restart), (c) confirmation that the GET at step 9 returned the todo with identical fields.
+  - [x] If the manual smoke fails — the todo disappears — DO NOT file a bug silently. The pg-data volume binding is a load-bearing NFR-003 contract; a failure here is an epic-level blocker.
 
 ### Coverage + gates
 
-- [ ] **Task 5 — Coverage-matrix walkthrough (AC: 11)**
-  - [ ] Walk the matrix in AC11 one row at a time, opening each referenced test file and confirming the assertion exists.
-  - [ ] Record the walkthrough in **Completion Notes List** as a short table (verb × happy × api-fault × web-fault).
-  - [ ] Flag in **Completion Notes List** any row where the referenced test doesn't yet exist because the upstream story (4.2 or 4.3) hasn't landed — that's a coverage gap owned by the OTHER story, NOT this one. Do NOT write placeholder tests here for missing 4.2/4.3 coverage.
+- [x] **Task 5 — Coverage-matrix walkthrough (AC: 11)**
+  - [x] Walk the matrix in AC11 one row at a time, opening each referenced test file and confirming the assertion exists.
+  - [x] Record the walkthrough in **Completion Notes List** as a short table (verb × happy × api-fault × web-fault).
+  - [x] Flag in **Completion Notes List** any row where the referenced test doesn't yet exist because the upstream story (4.2 or 4.3) hasn't landed — that's a coverage gap owned by the OTHER story, NOT this one. Do NOT write placeholder tests here for missing 4.2/4.3 coverage.
 
-- [ ] **Task 6 — Verify gates (AC: 12)**
-  - [ ] `npm run typecheck --workspace @todo-app/api` → pass.
-  - [ ] `npm test --workspace @todo-app/api` → all pre-existing + 2 new integration files pass.
-  - [ ] `npm run build --workspace @todo-app/api` → pass (this workspace has no build step today beyond typecheck; if `build` is unavailable, skip — capture note in Completion Notes List).
-  - [ ] Root-level `npm test` → all workspaces pass.
-  - [ ] `git diff --stat` lists exactly the files in AC12's enumeration. In particular: NO changes to `apps/api/src/`, `apps/web/`, or `.github/`.
+- [x] **Task 6 — Verify gates (AC: 12)**
+  - [x] `npm run typecheck --workspace @todo-app/api` → pass.
+  - [x] `npm test --workspace @todo-app/api` → all pre-existing + 2 new integration files pass.
+  - [x] `npm run build --workspace @todo-app/api` → pass (this workspace has no build step today beyond typecheck; if `build` is unavailable, skip — capture note in Completion Notes List).
+  - [x] Root-level `npm test` → all workspaces pass.
+  - [x] `git diff --stat` lists exactly the files in AC12's enumeration. In particular: NO changes to `apps/api/src/`, `apps/web/`, or `.github/`.
 
-- [ ] **Task 7 — Story hygiene**
-  - [ ] Update **Dev Agent Record → File List** with actual paths.
-  - [ ] Fill **Completion Notes List** with: AC10 smoke observation (id + timestamps), AC11 matrix walkthrough, any deviations.
-  - [ ] Run `code-review` to move the story to `review`.
+- [x] **Task 7 — Story hygiene**
+  - [x] Update **Dev Agent Record → File List** with actual paths.
+  - [x] Fill **Completion Notes List** with: AC10 smoke observation (id + timestamps), AC11 matrix walkthrough, any deviations.
+  - [x] Run `code-review` to move the story to `review`.
 
 ## Dev Notes
 
@@ -440,10 +440,64 @@ so that NFR-003 (zero loss across refresh/close/restart) and NFR-004 (error resi
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+claude-opus-4-7 (Opus 4.7, 1M context)
 
 ### Debug Log References
 
+- Typecheck: `npm run typecheck --workspace @todo-app/api` → clean.
+- API test suite: `npm test --workspace @todo-app/api` → 13 files / 105 tests passing (was 96 before; +9 from this story: 8 new in `integration.errors.test.ts` + 1 new in `integration.persistence.test.ts`).
+- Root test suite: `npm test` → 274 tests passing across all workspaces (api 105 + web 169).
+- API workspace has no `build` script (anticipated by Task 6); typecheck is the equivalent gate.
+- AC9 red-path local sanity: `DATABASE_URL=postgresql://bogus:bogus@127.0.0.1:9999/nope npm test --workspace @todo-app/api -- --run test/integration.errors.test.ts test/integration.persistence.test.ts` → exit code 1, ECONNREFUSED, `1 failed | 8 skipped` (the 8 in errors get skipped because beforeAll throws — but the suite still exits non-zero, which is the CI-failure behavior we want; the persistence test fails directly because it has no beforeAll). Confirms the new files do NOT silently skip when Postgres is unreachable.
+
 ### Completion Notes List
 
+**AC10 — `docker compose down` (no `-v`) manual smoke (boundary 3 of NFR-003):**
+
+Sequence executed locally on 2026-04-27:
+
+| Step | Action | Time | Result |
+|------|--------|------|--------|
+| 1 | `docker compose up -d postgres` (already running, healthy 16+ min) | — | Container `todo-app-postgres` healthy |
+| 2 | `npm run dev --workspace apps/api` (in background) | 2026-04-27T10:48:32+03:00 | API healthy |
+| 3 | `curl -X POST http://localhost:3000/v1/todos -d '{"description":"AC10-smoke-1777276117"}'` | 2026-04-27T10:48:37+03:00 | `id=019dcde9-638a-7568-ac50-d1abb36a7dba`, `createdAt=2026-04-27T07:48:37.898Z`, `userId=null`, `completed=false` |
+| 4 | Stop API dev server | 2026-04-27T10:48:54+03:00 | — |
+| 5 | `docker compose down` (NO `-v` flag) | 2026-04-27T10:48:54+03:00 | Container removed; network removed; `docker volume ls` confirms `todo-app_pg-data` survives |
+| 6 | `docker compose up -d postgres` | 2026-04-27T10:48:59+03:00 | New container created from same volume; healthy after ~5s |
+| 7 | Direct `psql` query against the recreated container | 2026-04-27T10:49:30+03:00 | Row present with identical fields (id, description, completed=f, created_at, user_id=NULL) |
+| 8 | Restart API dev server | 2026-04-27T10:49:47+03:00 | API healthy |
+| 9 | `curl http://localhost:3000/v1/todos` | 2026-04-27T10:49:47+03:00 | Body contains the captured todo with all 5 fields byte-identical to the pre-down POST response |
+
+Smoke todo cleaned up afterwards via `psql DELETE`. The named-volume contract holds: `docker compose down` removes the container but leaves `todo-app_pg-data` intact, and a fresh `docker compose up -d postgres` re-attaches it.
+
+**AC11 — NFR-004 coverage matrix (verified 2026-04-27):**
+
+| Verb | Happy path | API-side fault | Web-side fault |
+|------|-----------|----------------|----------------|
+| POST (create) | `apps/api/test/contract.todos.test.ts:38` (`returns 201 with Todo shape on valid body`) | `apps/api/test/integration.errors.test.ts` AC4 — TypeBox 400 across 4 invalid bodies, no leakage (`stack`/`Ajv`/`TypeBox` regex check) | `apps/web/src/App.integration.test.tsx:131,172,241` — locked-copy error + Retry path + fresh-submit recovery (Story 4.2) |
+| GET (list) | `apps/api/test/contract.todos.test.ts:118` (`describe('GET /v1/todos — contract', ...)`) | N/A — list cannot 404. AC5 covers Postgres-side fault via real 23505 surrogate. | N/A |
+| PATCH (toggle) | `apps/api/test/contract.todos.test.ts:233` (`describe('PATCH /v1/todos/:id — contract', ...)`) | `apps/api/test/integration.errors.test.ts` AC2 — 404 via real `todosRepo.update` `NotFoundError` | `apps/web/src/App.integration.test.tsx:541,590,657` (locked copy + retry + fresh-toggle clear) + Playwright `apps/web/e2e/journey-3-toggle-fail.spec.ts` (Story 4.3) |
+| DELETE (delete) | `apps/api/test/contract.todos.test.ts:350,374,417` (happy path + post-delete read + double-delete 404) | `apps/api/test/integration.errors.test.ts` AC3 — 404 via route-layer `affected === 0` `NotFoundError` | `apps/web/src/App.integration.test.tsx:721,787` (modal-anchored failure + retry + cancel-in-error) + Playwright `apps/web/e2e/journey-3-delete-fail.spec.ts` (Story 4.3) |
+
+Every CRUD verb has at least one happy-path contract test AND at least one fault-injection test. Every fault-injection test asserts the error envelope shape; web-side faults additionally assert input preservation + revert; api-side faults additionally assert no leakage of stack traces, internal class names, pg-driver `detail` fields, or sensitive ids.
+
+**Other notes:**
+- `npm run build --workspace @todo-app/api` is N/A — the API workspace has no build script; typecheck is the equivalent gate. Anticipated by Task 6.
+- AC9 verified: `.github/workflows/ci.yml` already has the right shape (`services.postgres` with `pg_isready` healthcheck, job-level `DATABASE_URL`, migrate step before tests, root `npm test` runs all workspaces). No edit needed.
+- `plugins.integration.test.ts` was NOT touched. Its synthetic-23505 + synthetic-NotFoundError + generic-500 cases remain — orthogonal coverage to this story's real-route + real-pg + logger-capture cases.
+
 ### File List
+
+**New:**
+- `apps/api/test/integration.errors.test.ts`
+- `apps/api/test/integration.persistence.test.ts`
+
+**Status:**
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (4-4 → review; last_updated → 2026-04-27)
+- `_bmad-output/implementation-artifacts/4-4-api-global-error-handler-coverage-persistence-integration-test-nfr-003.md` (this file)
+
+**Not modified (per AC12 / scope boundary):** any file under `apps/api/src/`, any file under `apps/web/`, `.github/workflows/ci.yml`, `docker-compose.yml`, any migration.
+
+### Change Log
+
+- 2026-04-27 — Story 4.4 implemented: API global error-handler coverage via real-route + real-Postgres integration tests (AC1–AC6), persistence integration test exercising buildApp close+rebuild (AC7–AC8), CI workflow verified (AC9), `docker compose down` (no `-v`) manual smoke executed and recorded (AC10), NFR-004 coverage matrix walked (AC11), all gates green (AC12).
