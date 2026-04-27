@@ -1,5 +1,5 @@
 # generated: 2026-04-18
-# last_updated: 2026-04-27 (Story 5.4 implemented → review; ALL MVP STORIES NOW IN REVIEW — Epic 4 + Epic 5 complete; only retrospectives remain optional)
+# last_updated: 2026-04-27 (Manual review complete — all 22 MVP stories marked done; all 5 epics done; only retrospectives remain optional)
 # Note: Story 2.1 → review (59 tests pass; typecheck/lint/format clean; contract test against real Postgres)
 # project: todo-app
 # project_key: NOKEY
@@ -44,13 +44,13 @@ story_location: "{project-root}/_bmad-output/implementation-artifacts"
 
 development_status:
   # Epic 1: Foundation & Walking Skeleton
-  epic-1: in-progress
+  epic-1: done
   1-1-monorepo-scaffold-with-docker-postgres: done
   1-2-fastify-api-skeleton-with-healthz: done
   1-3-database-layer-kysely-todos-migration-healthz-db-probe: done
   1-4-api-plugin-stack-v1-prefix-global-error-handler: done
   1-5-web-app-scaffold-vite-tailwind-v4-design-tokens-errorboundary-header: done
-  1-6-ci-pipeline-code-quality-gate-eslint-prettier-a11y-playwright-e2e-scaffold-onboarding-readme: review
+  1-6-ci-pipeline-code-quality-gate-eslint-prettier-a11y-playwright-e2e-scaffold-onboarding-readme: done
   epic-1-retrospective: optional
 
   # Epic 2: Create & View Todos
@@ -64,26 +64,26 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Complete & Delete — Finish the Core Loop
-  epic-3: in-progress
-  3-1-updatetodoinput-schema-todosrepo-update-patch-v1-todos-id: review
-  3-2-todosrepo-remove-delete-v1-todos-id: review
-  3-3-useoptimistictodomutation-factory-usetoggletodo-usedeletetodo-hooks: review
-  3-4-todorow-completed-state-todolist-completed-section-app-tsx-sectioning: review
-  3-5-deletetodomodal-component-app-tsx-delete-flow-journey-2-complete: review
+  epic-3: done
+  3-1-updatetodoinput-schema-todosrepo-update-patch-v1-todos-id: done
+  3-2-todosrepo-remove-delete-v1-todos-id: done
+  3-3-useoptimistictodomutation-factory-usetoggletodo-usedeletetodo-hooks: done
+  3-4-todorow-completed-state-todolist-completed-section-app-tsx-sectioning: done
+  3-5-deletetodomodal-component-app-tsx-delete-flow-journey-2-complete: done
   epic-3-retrospective: optional
 
   # Epic 4: Failure-Proof User Experience
-  epic-4: in-progress
-  4-1-inlineerror-component: review
-  4-2-create-failure-flow-addtodoinput-inline-error-with-preserved-input-retry: review
-  4-3-toggle-failure-row-anchored-error-delete-failure-modal-anchored-error: review
-  4-4-api-global-error-handler-coverage-persistence-integration-test-nfr-003: review
+  epic-4: done
+  4-1-inlineerror-component: done
+  4-2-create-failure-flow-addtodoinput-inline-error-with-preserved-input-retry: done
+  4-3-toggle-failure-row-anchored-error-delete-failure-modal-anchored-error: done
+  4-4-api-global-error-handler-coverage-persistence-integration-test-nfr-003: done
   epic-4-retrospective: optional
 
   # Epic 5: Launch Quality — Accessibility, Responsive, Performance
-  epic-5: in-progress
-  5-1-journey-4-perf-harness-nfr-001-nfr-002-verification: review
-  5-2-responsive-smoke-test-cross-browser-matrix-fr-009-sc-004-verification: review
-  5-3-keyboard-only-screen-reader-walkthroughs-manual-accessibility-verification: review
-  5-4-wcag-contrast-audit-launch-quality-checklist: review
+  epic-5: done
+  5-1-journey-4-perf-harness-nfr-001-nfr-002-verification: done
+  5-2-responsive-smoke-test-cross-browser-matrix-fr-009-sc-004-verification: done
+  5-3-keyboard-only-screen-reader-walkthroughs-manual-accessibility-verification: done
+  5-4-wcag-contrast-audit-launch-quality-checklist: done
   epic-5-retrospective: optional

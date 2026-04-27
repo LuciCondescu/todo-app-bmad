@@ -1,6 +1,6 @@
 # Story 3.4: `TodoRow` completed state + `TodoList` completed section + `App.tsx` sectioning
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

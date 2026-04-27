@@ -1,6 +1,6 @@
 # Story 5.2: Responsive smoke test + cross-browser matrix — FR-009 / SC-004 verification
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

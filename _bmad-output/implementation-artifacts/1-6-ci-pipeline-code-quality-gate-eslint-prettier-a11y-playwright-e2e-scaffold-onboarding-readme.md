@@ -1,6 +1,6 @@
 # Story 1.6: CI pipeline + code-quality gate (ESLint, Prettier, a11y) + Playwright E2E scaffold + onboarding README
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

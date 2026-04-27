@@ -1,6 +1,6 @@
 # Story 5.1: Journey-4 perf harness — NFR-001 / NFR-002 verification
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

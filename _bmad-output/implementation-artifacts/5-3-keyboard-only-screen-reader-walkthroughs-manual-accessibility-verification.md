@@ -1,6 +1,6 @@
 # Story 5.3: Keyboard-only + screen-reader walkthroughs — manual accessibility verification
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

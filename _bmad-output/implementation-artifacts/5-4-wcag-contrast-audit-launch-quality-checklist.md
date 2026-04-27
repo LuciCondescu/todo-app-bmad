@@ -1,6 +1,6 @@
 # Story 5.4: WCAG contrast audit + launch-quality checklist
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

@@ -1,6 +1,6 @@
 # Story 4.4: API global error handler coverage + persistence integration test (NFR-003)
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

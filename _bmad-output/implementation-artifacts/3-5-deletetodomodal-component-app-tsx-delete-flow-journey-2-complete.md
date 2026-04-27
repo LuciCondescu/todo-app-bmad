@@ -1,6 +1,6 @@
 # Story 3.5: `DeleteTodoModal` component + `App.tsx` delete flow — Journey 2 complete
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

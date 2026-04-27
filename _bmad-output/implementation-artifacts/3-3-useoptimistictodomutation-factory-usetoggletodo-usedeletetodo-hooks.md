@@ -1,6 +1,6 @@
 # Story 3.3: `useOptimisticTodoMutation` factory + `useToggleTodo` + `useDeleteTodo` hooks
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
