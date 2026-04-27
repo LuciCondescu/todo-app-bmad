@@ -1,5 +1,5 @@
 # generated: 2026-04-18
-# last_updated: 2026-04-27 (Story 5.1 implemented → review; Epic 4 entirely in review; Epic 5: 5.1 in review, 5.2 + 5.3 + 5.4 still ready-for-dev)
+# last_updated: 2026-04-27 (Story 5.4 implemented → review; ALL MVP STORIES NOW IN REVIEW — Epic 4 + Epic 5 complete; only retrospectives remain optional)
 # Note: Story 2.1 → review (59 tests pass; typecheck/lint/format clean; contract test against real Postgres)
 # project: todo-app
 # project_key: NOKEY
@@ -83,7 +83,7 @@ development_status:
   # Epic 5: Launch Quality — Accessibility, Responsive, Performance
   epic-5: in-progress
   5-1-journey-4-perf-harness-nfr-001-nfr-002-verification: review
-  5-2-responsive-smoke-test-cross-browser-matrix-fr-009-sc-004-verification: ready-for-dev
-  5-3-keyboard-only-screen-reader-walkthroughs-manual-accessibility-verification: ready-for-dev
-  5-4-wcag-contrast-audit-launch-quality-checklist: ready-for-dev
+  5-2-responsive-smoke-test-cross-browser-matrix-fr-009-sc-004-verification: review
+  5-3-keyboard-only-screen-reader-walkthroughs-manual-accessibility-verification: review
+  5-4-wcag-contrast-audit-launch-quality-checklist: review
   epic-5-retrospective: optional
