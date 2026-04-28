@@ -49,6 +49,10 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
     await app.register(fastifyEnv, {
       schema: envSchema,
       dotenv: opts.config === undefined,
+      // env-schema would otherwise unshift process.env into the validation data
+      // by default; that lets ambient env vars (e.g. CI's DATABASE_URL) leak into
+      // tests that intentionally pass an empty config to assert fail-fast.
+      env: false,
       data: opts.config ?? process.env,
       ajv: {
         customOptions: (ajv) => {
