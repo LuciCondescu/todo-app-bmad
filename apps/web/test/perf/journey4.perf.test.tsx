@@ -193,8 +193,19 @@ describe('Journey-4 perf harness', () => {
 
     const user = userEvent.setup();
     const uiSamples: number[] = [];
-    const baselineApiCount = lastFetchTimings.filter((t) => t.method === 'POST').length;
     const input = screen.getByRole('textbox', { name: 'Add a todo' }) as HTMLInputElement;
+
+    // Untimed warmup: the first user.type drives ~14 keypress events through
+    // React + AJV, which on a contended CI runner consistently lands ~50–100ms
+    // above the steady-state cost. Discard it so the timed loop measures the
+    // warm path only. Baselines are captured AFTER the warmup for the same
+    // reason on the API side.
+    await user.type(input, 'Perf create warmup{Enter}');
+    await waitFor(() => {
+      expect(screen.getByText('Perf create warmup')).toBeInTheDocument();
+      expect(input.value).toBe('');
+    });
+    const baselineApiCount = lastFetchTimings.filter((t) => t.method === 'POST').length;
 
     for (let n = 1; n <= 3; n += 1) {
       const desc = `Perf create ${n}`;
