@@ -32,6 +32,10 @@ jobs:
       LOG_LEVEL: info
       NODE_ENV: test
       CI: 'true'
+      # Mirror what local devs get from `cp apps/web/.env.example apps/web/.env`.
+      # The web suite needs this for the production-style URL the build inlines;
+      # the perf-harness fetch stub then parses the pathname out of it.
+      VITE_API_URL: http://localhost:3000
 
     steps:
       - uses: actions/checkout@v4

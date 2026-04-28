@@ -123,6 +123,12 @@ afterEach(() => {
   // Drop any stale React Query subscriptions between tests.
 });
 
+// Vitest's 5s default collides with the harness's 5s render-gate waitFor, and
+// AC10's 40-interaction loop adds non-trivial jsdom overhead on CI runners.
+// 20s gives slow CI hardware breathing room without hiding regressions — the
+// real budgets are the UI/API p95 assertions inside each test.
+vi.setConfig({ testTimeout: 20_000 });
+
 describe('Journey-4 perf harness', () => {
   it('AC5/AC6 — initial render: 50 seeded todos visible within the cold-path threshold', async () => {
     const t0 = performance.now();
@@ -140,7 +146,9 @@ describe('Journey-4 perf harness', () => {
 
   it('AC7 — toggle batch (5 rows): UI p95 ≤ threshold; API p95 ≤ threshold', async () => {
     mountApp();
-    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(SEED_TOTAL));
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(SEED_TOTAL), {
+      timeout: 5_000,
+    });
 
     const user = userEvent.setup();
     const uiSamples: number[] = [];
@@ -179,7 +187,9 @@ describe('Journey-4 perf harness', () => {
 
   it('AC8 — create batch (3 todos): UI p95 ≤ threshold; API p95 ≤ threshold', async () => {
     mountApp();
-    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(SEED_TOTAL));
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(SEED_TOTAL), {
+      timeout: 5_000,
+    });
 
     const user = userEvent.setup();
     const uiSamples: number[] = [];
@@ -210,7 +220,9 @@ describe('Journey-4 perf harness', () => {
 
   it('AC9 — delete batch (3 rows): UI p95 ≤ threshold; API p95 ≤ threshold', async () => {
     mountApp();
-    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(SEED_TOTAL));
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(SEED_TOTAL), {
+      timeout: 5_000,
+    });
 
     const user = userEvent.setup();
     const uiSamples: number[] = [];
@@ -248,7 +260,9 @@ describe('Journey-4 perf harness', () => {
     await truncateTodos(app.db);
     await seed50(app.db);
     mountApp();
-    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(SEED_TOTAL));
+    await waitFor(() => expect(screen.getAllByRole('listitem')).toHaveLength(SEED_TOTAL), {
+      timeout: 5_000,
+    });
 
     const user = userEvent.setup();
     const samples: number[] = [];
