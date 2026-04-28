@@ -625,8 +625,7 @@ describe('<App /> integration — full tree with mocked fetch', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        json: async () =>
-          secondPatchSucceeded ? [{ ...T1, completed: true }] : [T1],
+        json: async () => (secondPatchSucceeded ? [{ ...T1, completed: true }] : [T1]),
       } as unknown as Response;
     });
     vi.stubGlobal('fetch', fetchFn);
@@ -692,8 +691,7 @@ describe('<App /> integration — full tree with mocked fetch', () => {
         ok: true,
         status: 200,
         statusText: 'OK',
-        json: async () =>
-          secondPatchSucceeded ? [{ ...T1, completed: true }] : [T1],
+        json: async () => (secondPatchSucceeded ? [{ ...T1, completed: true }] : [T1]),
       } as unknown as Response;
     });
     vi.stubGlobal('fetch', fetchFn);

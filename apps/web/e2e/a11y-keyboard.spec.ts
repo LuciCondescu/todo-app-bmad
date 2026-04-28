@@ -8,30 +8,7 @@
 // subsequent elements. Spec purity is load-bearing.
 
 import { test, expect, type Locator, type Page } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-
-const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
-
-function truncateTodos() {
-  execFileSync(
-    'docker',
-    [
-      'compose',
-      'exec',
-      '-T',
-      'postgres',
-      'psql',
-      '-U',
-      'postgres',
-      '-d',
-      'todo_app',
-      '-c',
-      'TRUNCATE TABLE todos;',
-    ],
-    { cwd: REPO_ROOT, stdio: 'inherit' },
-  );
-}
+import { truncateTodos } from './_helpers/db.js';
 
 async function assertFocusRingVisible(label: string, locator: Locator): Promise<void> {
   const style = await locator.evaluate((el) => {
@@ -42,13 +19,19 @@ async function assertFocusRingVisible(label: string, locator: Locator): Promise<
       outlineColor: cs.outlineColor,
     };
   });
-  expect(style.outlineWidth, `${label}: expected non-zero outlineWidth, got "${style.outlineWidth}"`).not.toBe('0px');
-  expect(style.outlineStyle, `${label}: expected solid outlineStyle, got "${style.outlineStyle}"`).toBe('solid');
+  expect(
+    style.outlineWidth,
+    `${label}: expected non-zero outlineWidth, got "${style.outlineWidth}"`,
+  ).not.toBe('0px');
+  expect(
+    style.outlineStyle,
+    `${label}: expected solid outlineStyle, got "${style.outlineStyle}"`,
+  ).toBe('solid');
 }
 
 test.describe('a11y — keyboard-only Journey 1', () => {
-  test.beforeEach(() => {
-    truncateTodos();
+  test.beforeEach(async () => {
+    await truncateTodos();
   });
 
   test('Tab/Space/Enter/Escape only — every focus stop has a visible ring', async ({ page }) => {

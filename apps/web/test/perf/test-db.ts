@@ -9,7 +9,14 @@
 
 import { existsSync, readFileSync, promises as fs } from 'node:fs';
 import * as path from 'node:path';
-import { Kysely, PostgresDialect, CamelCasePlugin, FileMigrationProvider, Migrator, sql } from 'kysely';
+import {
+  Kysely,
+  PostgresDialect,
+  CamelCasePlugin,
+  FileMigrationProvider,
+  Migrator,
+  sql,
+} from 'kysely';
 import pg from 'pg';
 import type { Database } from '@todo-app/api/db/schema';
 

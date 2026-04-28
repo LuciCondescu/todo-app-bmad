@@ -1,29 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-
-// Repo root is three levels up from apps/web/e2e/
-const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
-
-function truncateTodos() {
-  execFileSync(
-    'docker',
-    [
-      'compose',
-      'exec',
-      '-T',
-      'postgres',
-      'psql',
-      '-U',
-      'postgres',
-      '-d',
-      'todo_app',
-      '-c',
-      'TRUNCATE TABLE todos;',
-    ],
-    { cwd: REPO_ROOT, stdio: 'inherit' },
-  );
-}
+import { truncateTodos } from './_helpers/db.js';
 
 async function addTodo(page: Page, description: string): Promise<void> {
   const input = page.getByRole('textbox', { name: 'Add a todo' });
@@ -38,9 +14,9 @@ async function addTodo(page: Page, description: string): Promise<void> {
 
 test.describe('Journey 2 — toggle complete/incomplete', () => {
   test.beforeEach(async () => {
-    truncateTodos();
+    await truncateTodos();
     await new Promise((resolve) => setTimeout(resolve, 200));
-    truncateTodos();
+    await truncateTodos();
   });
 
   test('3 seeded todos all render in the Active section', async ({ page }) => {

@@ -1,6 +1,10 @@
 import { ApiError } from './errors.js';
 
-const API_BASE = import.meta.env.VITE_API_URL;
+// Default to a relative base when VITE_API_URL is unset — this avoids the
+// "undefined/v1/todos" pitfall in test/CI environments where no .env is loaded
+// (template-literal coercion would otherwise inject the literal string
+// "undefined" into the request URL).
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
 async function request<T>(
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',

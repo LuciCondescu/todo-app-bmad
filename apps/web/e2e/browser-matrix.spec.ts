@@ -14,30 +14,7 @@
 // webkit projects when `--project=chromium` is passed).
 
 import { test, expect, type Page } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-
-const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
-
-function truncateTodos() {
-  execFileSync(
-    'docker',
-    [
-      'compose',
-      'exec',
-      '-T',
-      'postgres',
-      'psql',
-      '-U',
-      'postgres',
-      '-d',
-      'todo_app',
-      '-c',
-      'TRUNCATE TABLE todos;',
-    ],
-    { cwd: REPO_ROOT, stdio: 'inherit' },
-  );
-}
+import { truncateTodos } from './_helpers/db.js';
 
 async function addTodo(page: Page, description: string): Promise<void> {
   const input = page.getByRole('textbox', { name: 'Add a todo' });
@@ -79,8 +56,8 @@ test.describe('Cross-browser matrix — FR-009 / SC-004', () => {
   test.describe('at 320×800', () => {
     test.use({ viewport: { width: 320, height: 800 } });
 
-    test.beforeEach(() => {
-      truncateTodos();
+    test.beforeEach(async () => {
+      await truncateTodos();
     });
 
     test('Journey 1 — create + reload persistence + no h-scroll', async ({ page }) => {
@@ -139,8 +116,8 @@ test.describe('Cross-browser matrix — FR-009 / SC-004', () => {
   test.describe('at 1024×800', () => {
     test.use({ viewport: { width: 1024, height: 800 } });
 
-    test.beforeEach(() => {
-      truncateTodos();
+    test.beforeEach(async () => {
+      await truncateTodos();
     });
 
     test('Journey 1 — create + reload persistence + no h-scroll', async ({ page }) => {

@@ -1,35 +1,12 @@
 // Story 4.2 — AC8: Journey 3 create-failure flow (inline error + preserved input + Retry).
 import { test, expect } from '@playwright/test';
-import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-
-const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
-
-function truncateTodos() {
-  execFileSync(
-    'docker',
-    [
-      'compose',
-      'exec',
-      '-T',
-      'postgres',
-      'psql',
-      '-U',
-      'postgres',
-      '-d',
-      'todo_app',
-      '-c',
-      'TRUNCATE TABLE todos;',
-    ],
-    { cwd: REPO_ROOT, stdio: 'inherit' },
-  );
-}
+import { truncateTodos } from './_helpers/db.js';
 
 test.describe('Journey 3 — create failure', () => {
   test.beforeEach(async () => {
-    truncateTodos();
+    await truncateTodos();
     await new Promise((resolve) => setTimeout(resolve, 200));
-    truncateTodos();
+    await truncateTodos();
   });
 
   test('first POST fails → inline error + preserved input + Retry succeeds → row appears, input clears + refocuses, error disappears', async ({
