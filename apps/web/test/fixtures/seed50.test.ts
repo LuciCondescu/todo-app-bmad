@@ -22,13 +22,12 @@ afterAll(async () => {
 describe('seed50 fixture', () => {
   it('populates exactly 50 todos with the documented 35/15 active/completed split (AC1) and is idempotent (AC2)', async () => {
     await seed50(db);
-    const firstCount = await sql<{ count: string }>`SELECT count(*)::text AS count FROM todos`.execute(db);
+    const firstCount = await sql<{
+      count: string;
+    }>`SELECT count(*)::text AS count FROM todos`.execute(db);
     expect(Number(firstCount.rows[0].count)).toBe(SEED_TOTAL);
 
-    const distribution = await db
-      .selectFrom('todos')
-      .select(['completed'])
-      .execute();
+    const distribution = await db.selectFrom('todos').select(['completed']).execute();
     const active = distribution.filter((t) => !t.completed).length;
     const completed = distribution.filter((t) => t.completed).length;
     expect(active).toBe(SEED_ACTIVE);
@@ -36,7 +35,9 @@ describe('seed50 fixture', () => {
 
     // Idempotence: a second invocation should not stack rows.
     await seed50(db);
-    const secondCount = await sql<{ count: string }>`SELECT count(*)::text AS count FROM todos`.execute(db);
+    const secondCount = await sql<{
+      count: string;
+    }>`SELECT count(*)::text AS count FROM todos`.execute(db);
     expect(Number(secondCount.rows[0].count)).toBe(SEED_TOTAL);
   });
 });

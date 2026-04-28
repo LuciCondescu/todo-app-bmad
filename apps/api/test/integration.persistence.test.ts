@@ -58,11 +58,7 @@ describe('app close + rebuild preserves todos (FR-011 / NFR-003 boundary 2)', ()
 
       // Order is FR-002 — completed ASC, createdAt ASC. All three have completed=false,
       // so insertion order is the expected order.
-      expect(listed.map((t) => t.description)).toEqual([
-        'First todo',
-        'Second todo',
-        'Third todo',
-      ]);
+      expect(listed.map((t) => t.description)).toEqual(['First todo', 'Second todo', 'Third todo']);
     } finally {
       await second.close();
     }

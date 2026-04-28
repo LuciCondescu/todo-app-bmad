@@ -122,7 +122,7 @@ describe('global error handler — real-route + real-Postgres integration covera
           arg !== null &&
           'err' in arg &&
           (arg as { err?: unknown }).err instanceof Error &&
-          ((arg as { err: Error }).err.message === SYNTHETIC_ERROR_MARKER)
+          (arg as { err: Error }).err.message === SYNTHETIC_ERROR_MARKER
         );
       });
       expect(matchingCall, 'expected pino to receive the original Error via { err }').toBeDefined();

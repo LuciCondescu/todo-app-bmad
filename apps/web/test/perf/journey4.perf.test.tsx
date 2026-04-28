@@ -41,7 +41,8 @@ const INITIAL_RENDER_MS = 1500; // cold path includes React boot + initial fetch
 let app: FastifyInstance;
 
 const fetchViaInject: typeof fetch = async (input, init) => {
-  const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+  const url =
+    typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
   const path = new URL(url, 'http://local/').pathname;
   const method = (init?.method ?? 'GET').toUpperCase();
   const payload = init?.body ? JSON.parse(init.body as string) : undefined;
@@ -61,9 +62,7 @@ const fetchViaInject: typeof fetch = async (input, init) => {
   const bodyAllowed = res.statusCode !== 204 && (res.statusCode < 100 || res.statusCode >= 200);
   return new Response(bodyAllowed ? res.body : null, {
     status: res.statusCode,
-    headers: Object.fromEntries(
-      Object.entries(res.headers).map(([k, v]) => [k, String(v)]),
-    ),
+    headers: Object.fromEntries(Object.entries(res.headers).map(([k, v]) => [k, String(v)])),
   });
 };
 
@@ -255,7 +254,10 @@ describe('Journey-4 perf harness', () => {
     const samples: number[] = [];
     const input = screen.getByRole('textbox', { name: 'Add a todo' }) as HTMLInputElement;
 
-    type Step = { kind: 'toggle'; row: number } | { kind: 'create'; n: number } | { kind: 'delete'; row: number };
+    type Step =
+      | { kind: 'toggle'; row: number }
+      | { kind: 'create'; n: number }
+      | { kind: 'delete'; row: number };
     const steps: Step[] = [];
     // Build a deterministic 40-step interleaved script:
     // 20 toggles (rotating rows 0..19), 10 creates, 10 deletes.

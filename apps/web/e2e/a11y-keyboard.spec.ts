@@ -42,8 +42,14 @@ async function assertFocusRingVisible(label: string, locator: Locator): Promise<
       outlineColor: cs.outlineColor,
     };
   });
-  expect(style.outlineWidth, `${label}: expected non-zero outlineWidth, got "${style.outlineWidth}"`).not.toBe('0px');
-  expect(style.outlineStyle, `${label}: expected solid outlineStyle, got "${style.outlineStyle}"`).toBe('solid');
+  expect(
+    style.outlineWidth,
+    `${label}: expected non-zero outlineWidth, got "${style.outlineWidth}"`,
+  ).not.toBe('0px');
+  expect(
+    style.outlineStyle,
+    `${label}: expected solid outlineStyle, got "${style.outlineStyle}"`,
+  ).toBe('solid');
 }
 
 test.describe('a11y — keyboard-only Journey 1', () => {

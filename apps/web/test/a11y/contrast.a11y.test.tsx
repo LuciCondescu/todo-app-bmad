@@ -102,21 +102,18 @@ const PAIRS: Pair[] = [
 ];
 
 describe('Story 5.4 — token-pair contrast audit', () => {
-  it.each(PAIRS)(
-    '$label: contrast ratio (math) ≥ $threshold ($wcag)',
-    (pair: Pair) => {
-      const ratio = computeContrast(pair.fg, pair.bg, pair.alpha);
-      console.log(
-        `[contrast] ${pair.label}: ${ratio.toFixed(2)} — threshold ${pair.threshold} (${pair.wcag})`,
+  it.each(PAIRS)('$label: contrast ratio (math) ≥ $threshold ($wcag)', (pair: Pair) => {
+    const ratio = computeContrast(pair.fg, pair.bg, pair.alpha);
+    console.log(
+      `[contrast] ${pair.label}: ${ratio.toFixed(2)} — threshold ${pair.threshold} (${pair.wcag})`,
+    );
+    if (!(ratio >= pair.threshold)) {
+      throw new Error(
+        `[contrast FAIL] ${pair.label}: got ${ratio.toFixed(2)}, threshold ${pair.threshold}, tokens (${pair.fgToken}, ${pair.bgToken})`,
       );
-      if (!(ratio >= pair.threshold)) {
-        throw new Error(
-          `[contrast FAIL] ${pair.label}: got ${ratio.toFixed(2)}, threshold ${pair.threshold}, tokens (${pair.fgToken}, ${pair.bgToken})`,
-        );
-      }
-      expect(ratio).toBeGreaterThanOrEqual(pair.threshold);
-    },
-  );
+    }
+    expect(ratio).toBeGreaterThanOrEqual(pair.threshold);
+  });
 
   // Defensive axe pass over inline-styled samples — skip the alpha case
   // (jsdom's CSSOM inline-opacity handling is unreliable; helper-math is
